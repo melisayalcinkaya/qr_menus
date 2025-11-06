@@ -1,0 +1,294 @@
+/* CategoriesPage için genel stiller - TAM EKRAN RESPONSİVE */
+.categoriesPage {
+    width: 100vw;
+    min-height: 100vh;
+    background-color: #f8f8f8;
+    padding-bottom: 90px;
+    box-sizing: border-box;
+    margin: 0;
+    padding-left: 0;
+    padding-right: 0;
+    overflow-x: hidden;
+}
+
+/* Header Stilleri */
+.appHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.appTitle {
+    color: #e53935;
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.searchButton {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    color: #333;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.searchButton:hover {
+    background-color: #f0f0f0;
+}
+
+.searchContainer {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    position: relative;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 15px;
+    color: #888;
+    font-size: 1.4rem;
+}
+
+.searchInput {
+    flex-grow: 1;
+    padding: 15px 15px 15px 50px;
+    border: 2px solid #ddd;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.searchInput:focus {
+    border-color: #e53935;
+}
+
+.closeSearch {
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    color: #888;
+    cursor: pointer;
+    margin-left: 15px;
+    padding: 8px;
+    border-radius: 50%;
+}
+
+.closeSearch:hover {
+    background-color: #f0f0f0;
+}
+
+/* Main Content Stilleri */
+.mainContent {
+    padding: 25px;
+    padding-bottom: 90px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.categoriesContainerVertical {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.categoryItem {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.categoryItem:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+}
+
+.categoryImage {
+    width: 100px;
+    height: 100px;
+    border-radius: 12px;
+    object-fit: cover;
+    margin-right: 20px;
+    flex-shrink: 0;
+}
+
+.categoryText {
+    flex-grow: 1;
+}
+
+.categoryName {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.noResults {
+    text-align: center;
+    color: #666;
+    font-size: 1.3rem;
+    margin-top: 50px;
+    padding: 20px;
+}
+
+.loadingMessage,
+.errorMessage {
+    text-align: center;
+    color: #666;
+    font-size: 1.3rem;
+    margin-top: 50px;
+    padding: 20px;
+}
+
+.errorMessage {
+    color: #e53935;
+}
+
+/* TABLET - 768px ile 1024px arası */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .appHeader {
+        padding: 25px 30px;
+    }
+    
+    .appTitle {
+        font-size: 2.5rem;
+    }
+    
+    .searchButton {
+        font-size: 2rem;
+    }
+    
+    .searchInput {
+        padding: 18px 18px 18px 55px;
+        font-size: 1.2rem;
+    }
+    
+    .mainContent {
+        padding: 30px;
+        padding-bottom: 90px;
+    }
+    
+    .categoryItem {
+        padding: 25px;
+    }
+    
+    .categoryImage {
+        width: 120px;
+        height: 120px;
+        margin-right: 25px;
+    }
+    
+    .categoryName {
+        font-size: 1.8rem;
+    }
+    
+    .categoriesContainerVertical {
+        gap: 25px;
+    }
+}
+
+/* TELEFON - 768px altı */
+@media (max-width: 767px) {
+    .appHeader {
+        padding: 15px 20px;
+    }
+
+    .appTitle {
+        font-size: 1.8rem;
+    }
+
+    .searchButton {
+        font-size: 1.5rem;
+    }
+
+    .searchIcon {
+        font-size: 1.2rem;
+        left: 12px;
+    }
+
+    .searchInput {
+        padding: 12px 12px 12px 40px;
+        font-size: 1rem;
+    }
+
+    .mainContent {
+        padding: 20px;
+        padding-bottom: 90px;
+    }
+
+    .categoryItem {
+        padding: 15px;
+    }
+
+    .categoryImage {
+        width: 80px;
+        height: 80px;
+        margin-right: 15px;
+    }
+
+    .categoryName {
+        font-size: 1.3rem;
+    }
+
+    .categoriesContainerVertical {
+        gap: 15px;
+    }
+}
+
+/* KÜÇÜK TELEFON - 480px altı */
+@media (max-width: 480px) {
+    .appHeader {
+        padding: 12px 15px;
+    }
+
+    .appTitle {
+        font-size: 1.6rem;
+    }
+
+    .searchButton {
+        font-size: 1.3rem;
+    }
+
+    .mainContent {
+        padding: 15px;
+        padding-bottom: 90px;
+    }
+    
+    .categoryItem {
+        padding: 12px;
+    }
+    
+    .categoryImage {
+        width: 70px;
+        height: 70px;
+        margin-right: 12px;
+    }
+    
+    .categoryName {
+        font-size: 1.2rem;
+    }
+}

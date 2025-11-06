@@ -1,0 +1,307 @@
+.navbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+  padding: 10px 0;
+  z-index: 1000;
+}
+
+.navbar-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.navbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  color: #4a5568;
+}
+
+.navbar-item:hover {
+  background-color: #f7fafc;
+}
+
+.navbar-item.active {
+  background-color: #f687b3;
+  color: white;
+}
+
+.navbar-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popup-content {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  max-width: 400px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.popup-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #4a5568;
+}
+
+.popup-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2d3748;
+  margin-bottom: 20px;
+}
+
+.popup-text {
+  color: #4a5568;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.language-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.language-option:hover {
+  background-color: #f7fafc;
+}
+
+.language-flag {
+  font-size: 1.5rem;
+}
+
+.comment-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.comment-submit-btn {
+  margin-top: 10px;
+  padding: 10px 20px;
+  background: #f687b3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.comment-submit-btn:hover {
+  background: #ed64a6;
+}
+
+.table-number-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.call-waiter-btn {
+  width: 100%;
+  padding: 12px;
+  background: #f687b3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.call-waiter-btn:hover {
+  background: #ed64a6;
+}
+
+/* YENİ EKLENEN STİLLER */
+
+/* Form grupları için stiller */
+.form-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+  font-size: 14px;
+}
+
+/* Lokasyon seçim kutusu */
+.location-select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: white;
+}
+
+/* Notlar textarea */
+.notes-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+/* Popup aksiyon butonları */
+.popup-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* İptal butonu */
+.cancel-btn {
+  padding: 12px 20px;
+  background: #78909c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+  flex: 1;
+}
+
+.cancel-btn:hover {
+  background: #607d8b;
+}
+
+/* Garson çağır butonu için yeni stil */
+.call-waiter-btn-new {
+  padding: 12px 20px;
+  background: #f687b3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+  flex: 1;
+}
+
+.call-waiter-btn-new:hover {
+  background: #ed64a6;
+}
+
+/* Yorum gönderme butonu için yeni stil */
+.comment-submit-btn-new {
+  margin-top: 10px;
+  padding: 12px 20px;
+  background: #f687b3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+
+.comment-submit-btn-new:hover {
+  background: #ed64a6;
+}
+
+/* WiFi durumu için stil */
+.wifi-status {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.wifi-enabled {
+  background-color: #c6f6d5;
+  color: #22543d;
+}
+
+.wifi-disabled {
+  background-color: #fed7d7;
+  color: #742a2a;
+}
+
+/* Responsive düzenlemeler */
+@media (max-width: 480px) {
+  .popup-content {
+    padding: 20px;
+    margin: 10px;
+  }
+  
+  .popup-actions {
+    flex-direction: column;
+  }
+  
+  .navbar-content {
+    padding: 0 10px;
+  }
+  
+  .navbar-item {
+    padding: 6px 8px;
+    font-size: 0.7rem;
+  }
+  
+  .navbar-icon {
+    font-size: 16px;
+  }
+}

@@ -1,0 +1,334 @@
+/* ===============================================
+   Menu3CommentPage.css - Welcome Banner renkleri ile uyumlu
+   =============================================== */
+
+.comment-page-menu3 {
+  min-height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0 0 80px 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.comment-header-menu3 {
+  text-align: center;
+  padding: 40px 20px;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+  color: white;
+}
+
+.comment-header-menu3::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.comment-header-menu3 h1 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #f687b3;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  position: relative;
+  z-index: 1;
+}
+
+.comment-header-menu3 p {
+  font-size: 1.3rem;
+  opacity: 0.9;
+  font-weight: 300;
+  color: #fbb6ce;
+  position: relative;
+  z-index: 1;
+}
+
+.comment-form-container-menu3 {
+  width: 100%;
+  padding: 30px 20px;
+  box-sizing: border-box;
+  margin-bottom: 30px;
+}
+
+.comment-form-menu3 {
+  max-width: 900px;
+  margin: 0 auto;
+  background: white;
+  padding: 40px;
+  border-radius: 25px;
+  border: 1px solid rgba(246,135,179,0.25);
+  box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  position: relative;
+  overflow: hidden;
+}
+
+.comment-form-menu3::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 25px 25px 0 0;
+  background: linear-gradient(135deg, #f687b3 0%, #fbb6ce 50%, #cbd5e0 100%);
+}
+
+.comment-form-menu3 h2 {
+  color: #2d3748;
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  text-align: center;
+}
+
+.comment-form-menu3 input,
+.comment-form-menu3 textarea,
+.comment-form-menu3 select {
+  width: 100%;
+  padding: 18px;
+  font-size: 1.1rem;
+  font-family: inherit;
+  box-sizing: border-box;
+  border-radius: 15px;
+  border: 2px solid #e2e8f0;
+  background-color: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.comment-form-menu3 input:focus,
+.comment-form-menu3 textarea:focus,
+.comment-form-menu3 select:focus {
+  outline: none;
+  border-color: #f687b3;
+  box-shadow: 0 0 0 3px rgba(246,135,179,0.2);
+  background-color: white;
+  transform: translateY(-1px);
+}
+
+.comment-form-menu3 input:hover,
+.comment-form-menu3 textarea:hover,
+.comment-form-menu3 select:hover {
+  border-color: #cbd5e0;
+}
+
+.comment-form-menu3 textarea {
+  min-height: 140px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.comment-form-menu3 select {
+  cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, #f687b3 50%), 
+                    linear-gradient(135deg, #f687b3 50%, transparent 50%);
+  background-position: calc(100% - 20px) calc(1em + 2px), 
+                       calc(100% - 15px) calc(1em + 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.comment-form-menu3 button {
+  background: linear-gradient(135deg, #f687b3 0%, #fbb6ce 100%);
+  color: white;
+  padding: 18px 40px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  align-self: center;
+  min-width: 200px;
+  box-shadow: 0 6px 20px rgba(246,135,179,0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.comment-form-menu3 button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.comment-form-menu3 button:hover::before {
+  left: 100%;
+}
+
+.comment-form-menu3 button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(246,135,179,0.4);
+  background: linear-gradient(135deg, #fbb6ce 0%, #cbd5e0 100%);
+}
+
+.comments-list-menu3 {
+  width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.comment-item-menu3 {
+  max-width: 900px;
+  margin: 0 auto 25px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  border-left: 5px solid #f687b3;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.comment-item-menu3::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, rgba(246,135,179,0.05) 0%, transparent 100%);
+  border-radius: 0 20px 0 100px;
+}
+
+.comment-item-menu3:hover {
+  transform: translateY(-3px);
+  border-left-color: #fbb6ce;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+
+.comment-item-menu3:nth-child(even) {
+  border-left-color: #fbb6ce;
+}
+
+.comment-item-menu3:nth-child(even):hover {
+  border-left-color: #cbd5e0;
+}
+
+.comment-item-menu3:nth-child(even)::before {
+  background: linear-gradient(135deg, rgba(251,182,206,0.05) 0%, transparent 100%);
+}
+
+.comment-header-info-menu3 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+  position: relative;
+  z-index: 1;
+}
+
+.comment-header-info-menu3 h3 {
+  font-size: 1.4rem;
+  color: #2d3748;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.comment-rating-menu3 {
+  display: flex;
+  gap: 3px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  padding: 8px 12px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(251,191,36,0.3);
+}
+
+.star {
+  font-size: 1.3rem;
+  color: rgba(255,255,255,0.4);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  transition: all 0.2s ease;
+}
+
+.star.active {
+  color: white;
+  transform: scale(1.1);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.comment-text-menu3 {
+  font-size: 1.1rem;
+  color: #4a5568;
+  line-height: 1.8;
+  margin-bottom: 20px;
+  text-align: justify;
+  hyphens: auto;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 15px;
+  position: relative;
+  z-index: 1;
+}
+
+.comment-date-menu3 {
+  font-size: 0.95rem;
+  font-style: italic;
+  color: #2d3748;
+  background: rgba(246,135,179,0.1);
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-weight: 500;
+  position: absolute;
+  bottom: 20px;
+  right: 30px;
+}
+
+/* ===============================================
+   Media Queries
+   =============================================== */
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .comment-header-menu3 h1 { font-size: 3.2rem; }
+  .comment-header-menu3 p { font-size: 1.4rem; }
+  .comment-form-menu3 { padding: 45px; gap: 30px; }
+  .comment-form-menu3 input,
+  .comment-form-menu3 textarea,
+  .comment-form-menu3 select { padding: 20px; font-size: 1.2rem; }
+  .comment-form-menu3 textarea { min-height: 160px; }
+  .comment-form-menu3 button { padding: 20px 45px; font-size: 1.3rem; }
+  .comment-item-menu3 { padding: 35px; }
+  .comment-header-info-menu3 h3 { font-size: 1.5rem; }
+  .comment-text-menu3 { font-size: 1.2rem; padding: 18px; }
+  .star { font-size: 1.4rem; }
+}
+
+@media (max-width: 767px) {
+  .comment-header-menu3 { padding: 30px 15px; }
+  .comment-header-menu3 h1 { font-size: 2.2rem; }
+  .comment-header-menu3 p { font-size: 1.1rem; }
+  .comment-form-container-menu3 { padding: 20px 15px; }
+  .comment-form-menu3 { padding: 25px; gap: 20px; }
+  .comment-form-menu3 input,
+  .comment-form-menu3 textarea,
+  .comment-form-menu3 select { padding: 15px; font-size: 1rem; }
+  .comment-form-menu3 textarea { min-height: 120px; }
+  .comment-form-menu3 button { padding: 16px 30px; font-size: 1.1rem; }
+  .comment-item-menu3 { padding: 25px; }
+  .comment-header-info-menu3 h3 { font-size: 1.2rem; }
+  .comment-text-menu3 { font-size: 1rem; padding: 12px; }
+  .star { font-size: 1.2rem; }
+}

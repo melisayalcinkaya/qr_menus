@@ -1,0 +1,47 @@
+/* ===============================================
+   VARIABLES.CSS - Ortak Değişkenler
+   =============================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Pacifico&display=swap');
+
+:root {
+  /* QR Menü Renkleri */
+  --qr-primary: #ff9800;
+  --qr-primary-light: #ffb74d;
+  --qr-primary-dark: #f57c00;
+  --qr-secondary: #4caf50;
+  --qr-accent: #ff5722;
+  
+  /* Gradientler */
+  --qr-gradient-warm: linear-gradient(135deg, #ffe68a 0%, #fff3e0 50%, #ffffff 100%);
+  --qr-gradient-primary: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+  
+  /* Renkler */
+  --qr-text-dark: #2e2e2e;
+  --qr-text-light: #666666;
+  --qr-text-muted: #999999;
+  --qr-white: #ffffff;
+  --qr-background: #fafafa;
+  
+  /* Gölgeler */
+  --qr-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  --qr-hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  
+  /* Border Radius */
+  --qr-radius: 16px;
+  --qr-radius-small: 12px;
+  
+  /* Transitions */
+  --qr-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Container Genişlikleri - ARTIRILDI */
+  --qr-container-max: 1400px;
+  --qr-container-category: 95%;   /* CategoryPage için çok geniş */
+  --qr-container-products: 95%;   /* ProductsPage için çok geniş */
+  --qr-container-comments: 95%;   /* CommentPage için çok geniş */
+  
+  /* Spacing */
+  --qr-spacing: 1.5rem;
+  --qr-spacing-small: 1rem;
+  --qr-spacing-large: 2rem;
+}

@@ -1,0 +1,248 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    width: 100%;
+    max-width: 900px;
+    min-height: 600px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    position: relative;
+}
+
+.brand-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.brand-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>') repeat;
+    animation: float 20s infinite linear;
+}
+
+@keyframes float {
+    0% { transform: translateX(0) translateY(0); }
+    100% { transform: translateX(-20px) translateY(-20px); }
+}
+
+.brand-logo {
+    font-size: 48px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.brand-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.brand-subtitle {
+    font-size: 18px;
+    opacity: 0.9;
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+}
+
+.form-section {
+    padding: 60px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.form-container {
+    display: none;
+}
+
+.form-container.active {
+    display: block;
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 8px;
+}
+
+.form-subtitle {
+    color: #718096;
+    margin-bottom: 40px;
+    font-size: 16px;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    color: #4a5568;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 16px 20px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background: #f8fafc;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-button {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.form-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.form-button:active {
+    transform: translateY(0);
+}
+
+.form-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.form-toggle {
+    text-align: center;
+    color: #718096;
+}
+
+.form-toggle a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.form-toggle a:hover {
+    color: #764ba2;
+}
+
+.forgot-password {
+    text-align: right;
+    margin-top: 8px;
+    margin-bottom: 24px;
+}
+
+.forgot-password a {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+}
+
+.alert {
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    font-size: 14px;
+}
+.alert-success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+.alert-error {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+    }
+
+    .brand-section {
+        padding: 40px 20px;
+    }
+
+    .brand-title {
+        font-size: 24px;
+    }
+
+    .brand-subtitle {
+        font-size: 16px;
+    }
+
+    .form-section {
+        padding: 40px 30px;
+    }
+
+    .form-title {
+        font-size: 24px;
+    }
+}
