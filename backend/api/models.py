@@ -71,6 +71,7 @@ class Category(models.Model):
 
     business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="categories")
     name = models.CharField(max_length=100)
+    name_en = models.CharField("İngilizce ad", max_length=100, blank=True)
     image = models.ImageField(
         upload_to=category_upload_path, null=True, blank=True, validators=[validate_image_file]
     )
@@ -89,7 +90,9 @@ class Category(models.Model):
 class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products")
     name = models.CharField(max_length=100)
+    name_en = models.CharField("İngilizce ad", max_length=100, blank=True)
     description = models.TextField(blank=True)
+    description_en = models.TextField("İngilizce açıklama", blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     image = models.ImageField(
         upload_to=product_upload_path, null=True, blank=True, validators=[validate_image_file]
@@ -98,7 +101,8 @@ class Product(models.Model):
     is_popular = models.BooleanField(default=False)
     preparation_time = models.PositiveIntegerField(default=0, help_text="Dakika")
     ingredients = models.JSONField(default=list, blank=True)
-    allergens = models.JSONField(default=list, blank=True)
+    allergens = models.JSONField(default=list, blank=True, help_text="catalog.ALLERGENS kodları")
+    dietary = models.JSONField(default=list, blank=True, help_text="catalog.DIETARY_TAGS kodları")
     position = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -114,6 +118,32 @@ class Product(models.Model):
     @property
     def business(self):
         return self.category.business
+
+
+class MenuVisit(models.Model):
+    """Günlük menü görüntülenme sayacı. Kişisel veri tutmaz, yalnızca sayı."""
+
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="visits")
+    date = models.DateField()
+    count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["business", "date"], name="unique_visit_day")
+        ]
+
+    def __str__(self):
+        return f"{self.business} {self.date}: {self.count}"
+
+    @classmethod
+    def record(cls, business):
+        from django.db.models import F
+        from django.utils import timezone
+
+        today = timezone.localdate()
+        visit, _ = cls.objects.get_or_create(business=business, date=today)
+        # F() ifadesi artırmayı veritabanında yapar; eşzamanlı isteklerde sayım kaybolmaz
+        cls.objects.filter(pk=visit.pk).update(count=F("count") + 1)
 
 
 class Comment(models.Model):

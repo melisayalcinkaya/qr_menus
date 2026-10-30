@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
+from .catalog import ALLERGEN_CODES, DIETARY_CODES
 from .models import Business, Category, Comment, Product, Table, WaiterCall
 
 User = get_user_model()
@@ -102,7 +103,16 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ["id", "business", "name", "image", "position", "product_count", "created_at"]
+        fields = [
+            "id",
+            "business",
+            "name",
+            "name_en",
+            "image",
+            "position",
+            "product_count",
+            "created_at",
+        ]
         read_only_fields = ["created_at"]
 
     def validate_business(self, value):
@@ -122,7 +132,14 @@ def _clean_str_list(value, field):
 
 
 class StringListField(serializers.Field):
-    """Metin listesi. Çok parçalı (multipart) formda JSON metni olarak da gelebilir."""
+    """Metin listesi. Çok parçalı (multipart) formda JSON metni olarak da gelebilir.
+
+    `choices` verilirse yalnızca o kodlar kabul edilir.
+    """
+
+    def __init__(self, choices=None, **kwargs):
+        self.choices = choices
+        super().__init__(**kwargs)
 
     def to_internal_value(self, data):
         if isinstance(data, str):
@@ -130,7 +147,13 @@ class StringListField(serializers.Field):
                 data = json.loads(data) if data.strip() else []
             except ValueError as exc:
                 raise serializers.ValidationError("Geçerli bir JSON listesi değil.") from exc
-        return _clean_str_list(data, self.field_name)
+        cleaned = _clean_str_list(data, self.field_name)
+        if self.choices is not None:
+            unknown = sorted(set(cleaned) - self.choices)
+            if unknown:
+                raise serializers.ValidationError(f"Bilinmeyen kod: {', '.join(unknown)}")
+            cleaned = list(dict.fromkeys(cleaned))  # tekrarları at, sırayı koru
+        return cleaned
 
     def to_representation(self, value):
         return list(value or [])
@@ -140,7 +163,8 @@ class ProductSerializer(serializers.ModelSerializer):
     category = OwnedCategoryField()
     category_name = serializers.CharField(source="category.name", read_only=True)
     ingredients = StringListField(required=False)
-    allergens = StringListField(required=False)
+    allergens = StringListField(choices=ALLERGEN_CODES, required=False)
+    dietary = StringListField(choices=DIETARY_CODES, required=False)
 
     class Meta:
         model = Product
@@ -149,7 +173,9 @@ class ProductSerializer(serializers.ModelSerializer):
             "category",
             "category_name",
             "name",
+            "name_en",
             "description",
+            "description_en",
             "price",
             "image",
             "is_active",
@@ -157,6 +183,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "preparation_time",
             "ingredients",
             "allergens",
+            "dietary",
             "position",
             "created_at",
             "updated_at",
@@ -254,13 +281,16 @@ class PublicProductSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
+            "name_en",
             "description",
+            "description_en",
             "price",
             "image",
             "is_popular",
             "preparation_time",
             "ingredients",
             "allergens",
+            "dietary",
         ]
 
 
@@ -269,7 +299,7 @@ class PublicCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ["id", "name", "image", "products"]
+        fields = ["id", "name", "name_en", "image", "products"]
 
     def get_products(self, obj):
         # Pasif ürünler müşteriye hiç gönderilmez (prefetch edilmiş listeden süzülür)

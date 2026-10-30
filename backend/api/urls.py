@@ -37,5 +37,6 @@ public_patterns = [
 urlpatterns = [
     path("auth/", include(auth_patterns)),
     path("public/", include(public_patterns)),
+    path("meta/", views.MetaView.as_view(), name="meta"),
     path("", include(router.urls)),
 ]

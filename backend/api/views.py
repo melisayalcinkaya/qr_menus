@@ -9,7 +9,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 
-from .models import Business, Category, Comment, Product, Table, WaiterCall
+from .catalog import ALLERGENS, DIETARY_TAGS, as_dicts
+from .models import Business, Category, Comment, MenuVisit, Product, Table, WaiterCall
 from .qr import qr_png, table_cards_pdf
 from .serializers import (
     BusinessSerializer,
@@ -23,6 +24,7 @@ from .serializers import (
     WaiterCallSerializer,
     menu_url,
 )
+from .stats import business_stats
 
 # --- Yönetim paneli (yalnızca işletme sahibi) --------------------------------
 # Her queryset isteği yapan kullanıcıya göre süzülür. Başkasının kaydına
@@ -45,6 +47,15 @@ class BusinessViewSet(viewsets.ModelViewSet):
         """İşletmenin menü adresini içeren QR kodunu PNG olarak döndürür."""
         business = self.get_object()
         return png_response(qr_png(menu_url(business)), f"{business.slug}-qr.png")
+
+    @action(detail=True, methods=["get"])
+    def stats(self, request, slug=None):
+        """Panel için özet: ziyaretler, garson çağrıları, yanıt süresi, puanlar."""
+        try:
+            days = min(max(int(request.query_params.get("days", 30)), 1), 365)
+        except ValueError:
+            days = 30
+        return Response(business_stats(self.get_object(), days))
 
     @action(detail=True, methods=["get"], url_path="table-cards")
     def table_cards(self, request, slug=None):
@@ -209,6 +220,13 @@ class PublicMenuView(generics.RetrieveAPIView):
             "table_token": self.request.query_params.get("masa", "")[:20]
         }
 
+    def retrieve(self, request, *args, **kwargs):
+        response = super().retrieve(request, *args, **kwargs)
+        # Paneldeki tema önizlemesi ziyaret sayılmaz
+        if request.query_params.get("preview") != "1":
+            MenuVisit.record(self.get_object())
+        return response
+
     def get_object(self):
         qs = Business.objects.prefetch_related(
             Prefetch("categories", queryset=Category.objects.prefetch_related("products"))
@@ -287,3 +305,19 @@ class PublicTableCallStatusView(generics.RetrieveAPIView):
 
             raise Http404
         return call
+
+
+class MetaView(generics.GenericAPIView):
+    """Ön yüzün kullandığı sabit listeler (alerjenler, beslenme etiketleri, temalar)."""
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def get(self, request):
+        return Response(
+            {
+                "allergens": as_dicts(ALLERGENS),
+                "dietary": as_dicts(DIETARY_TAGS),
+                "themes": [{"code": c, "label": label} for c, label in Business.THEME_CHOICES],
+            }
+        )
