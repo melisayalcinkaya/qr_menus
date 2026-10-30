@@ -1,0 +1,174 @@
+/* Ortak taban: sıfırlama, erişilebilirlik yardımcıları, iletişim kutusu */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Figtree Variable', system-ui, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+dl,
+dd,
+figure {
+  margin: 0;
+}
+
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus, #2155a3);
+  outline-offset: 2px;
+}
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.icon-button:hover {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+/* --- İletişim kutusu (mobilde alttan açılan panel) ---------------------- */
+
+.sheet {
+  width: min(560px, 100%);
+  max-width: 100%;
+  max-height: min(88vh, 760px);
+  margin: auto auto 0;
+  padding: 0;
+  border: 0;
+  border-radius: 20px 20px 0 0;
+  background: var(--sheet-bg, #fff);
+  color: var(--sheet-ink, #1a1a1a);
+  box-shadow: 0 -12px 40px rgb(0 0 0 / 0.18);
+}
+
+.sheet::backdrop {
+  background: rgb(10 14 20 / 0.5);
+}
+
+@media (min-width: 720px) {
+  .sheet {
+    margin: auto;
+    border-radius: 18px;
+  }
+}
+
+.sheet__body {
+  display: grid;
+  gap: 18px;
+  padding: 8px 20px calc(24px + env(safe-area-inset-bottom));
+}
+
+.sheet__header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0 6px;
+  background: inherit;
+  background: var(--sheet-bg, #fff);
+}
+
+.sheet__header h2 {
+  font-size: 1.25rem;
+  line-height: 1.25;
+}
+
+.sheet__text {
+  max-width: 60ch;
+}
+
+.sheet__notice {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.sheet__actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding-top: 12px;
+  background: var(--sheet-bg, #fff);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sheet[open] {
+    animation: sheet-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+.form-error {
+  color: var(--danger, #b42318);
+  font-weight: 600;
+}
