@@ -5,11 +5,17 @@
 ![Django](https://img.shields.io/badge/Django-5.2-092E20?logo=django&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
+[![Canlı demo](https://img.shields.io/badge/Canl%C4%B1_demo-Render-46E3B7?logo=render&logoColor=white)](https://qr-menus.onrender.com)
 [![Lisans: MIT](https://img.shields.io/badge/Lisans-MIT-yellow.svg)](LICENSE)
 
 Restoran ve kafeler için QR kodlu dijital menü. Müşteri masadaki kodu okutur; menüyü kendi dilinde görür, alerjenlere göre süzer ve tek dokunuşla garson çağırır. İşletme sahibi menüsünü, masalarını, gelen çağrıları ve yorumları tek bir panelden yönetir.
 
-**Canlı demo:** <!-- CANLI-DEMO --> Render kurulumundan sonra eklenecek.
+**Canlı demo:** https://qr-menus.onrender.com (ilk açılış, ücretsiz sunucu uyandığı için 30–60 saniye sürebilir)
+
+- Masa 4'ten menü ve garson çağırma: [Çınaraltı Lokantası](https://qr-menus.onrender.com/m/cinaralti-lokantasi?masa=demo-klasik-4), [Liman Bistro](https://qr-menus.onrender.com/m/liman-bistro?masa=demo-bistro-4), [Fıstık Pastanesi](https://qr-menus.onrender.com/m/fistik-pastanesi?masa=demo-vitrin-4)
+- İşletme paneli: https://qr-menus.onrender.com/panel
+- API dokümantasyonu: https://qr-menus.onrender.com/api/docs/
+
 Panel için demo hesabı: `demo` / `demo-sifre-2026`. Tüm demo verileri kurgusaldır.
 
 ![Aynı menünün üç teması: Klasik, Bistro ve Vitrin](docs/screenshots/menu-temalar.png)
