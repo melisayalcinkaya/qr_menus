@@ -41,6 +41,10 @@ if not SECRET_KEY:
         raise ImproperlyConfigured("DJANGO_SECRET_KEY ortam değişkeni tanımlanmalı.")
 
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
+# Render gibi platformlar kendi alan adını bu değişkenle verir
+RENDER_HOST = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_HOST:
+    ALLOWED_HOSTS.append(RENDER_HOST)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -60,6 +64,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "config.middleware.SecurityHeadersMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -113,6 +119,18 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
+
+# Derlenmiş React uygulaması (Docker imajında /app/frontend_dist)
+FRONTEND_DIST = Path(os.environ.get("FRONTEND_DIST", BASE_DIR.parent / "frontend" / "dist"))
+WHITENOISE_ROOT = FRONTEND_DIST if FRONTEND_DIST.exists() else None
+# Vite dosya adlarına içerik özeti ekler (index-3fa2c1.js); bunlar sonsuza dek önbelleklenebilir
+WHITENOISE_IMMUTABLE_FILE_TEST = r"^.+[.-][0-9a-zA-Z_-]{8,12}\..+$"
+# Manifest dosyası yoksa (testler, geliştirme) hata vermek yerine özgün adı kullan
+WHITENOISE_MANIFEST_STRICT = False
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = Path(os.environ.get("MEDIA_ROOT", BASE_DIR / "media"))
@@ -162,7 +180,15 @@ SPECTACULAR_SETTINGS = {
 }
 
 # Müşteri menüsünün yayınlandığı adres; QR kodları bu adrese yönlendirir
-PUBLIC_MENU_BASE_URL = os.environ.get("PUBLIC_MENU_BASE_URL", "http://localhost:5173").rstrip("/")
+PUBLIC_MENU_BASE_URL = (
+    os.environ.get("PUBLIC_MENU_BASE_URL")
+    or os.environ.get("RENDER_EXTERNAL_URL")
+    or "http://localhost:5173"
+).rstrip("/")
+
+# Yüklenen görselleri Django'nun sunması (tek sunuculu demo için; büyük ölçekte
+# nesne depolama + CDN kullanılmalı)
+SERVE_MEDIA = env_bool("SERVE_MEDIA", DEBUG)
 
 CORS_ALLOW_CREDENTIALS = True  # yenileme çerezi için
 
@@ -180,8 +206,11 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_REFERRER_POLICY = "same-origin"
-    X_FRAME_OPTIONS = "DENY"
+    # Paneldeki tema önizlemesi menüyü aynı kökenden iframe ile gösterir
+    X_FRAME_OPTIONS = "SAMEORIGIN"
     CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
+    if os.environ.get("RENDER_EXTERNAL_URL"):
+        CSRF_TRUSTED_ORIGINS.append(os.environ["RENDER_EXTERNAL_URL"])
 
 LOGGING = {
     "version": 1,
