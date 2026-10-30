@@ -123,3 +123,11 @@ class CatalogAndStatsTests(TwoOwnersTestCase):
     def test_stats_owner_only(self):
         r = self.client.get(f"/api/businesses/{self.bistro.slug}/stats/")
         self.assertEqual(r.status_code, 404)
+
+
+class SlugTests(TwoOwnersTestCase):
+    def test_turkish_letters_transliterated(self):
+        from api.models import Business
+
+        b = Business.objects.create(owner=self.ayse, name="Çınaraltı Şöbiyet Ğİ")
+        self.assertEqual(b.slug, "cinaralti-sobiyet-gi")

@@ -5,7 +5,20 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.text import slugify
 
+from .catalog import CATEGORY_ICONS
 from .validators import validate_image_file
+
+
+TURKISH_TO_ASCII = str.maketrans("çğıöşüÇĞİÖŞÜâîûÂÎÛ", "cgiosuCGIOSUaiuAIU")
+
+
+def turkish_slugify(value):
+    """'Çınaraltı Lokantası' -> 'cinaralti-lokantasi'.
+
+    Django'nun slugify'ı ASCII olmayan harfleri siler ('cnaralt'); önce Türkçe
+    harfleri karşılıklarına çeviriyoruz.
+    """
+    return slugify(value.translate(TURKISH_TO_ASCII))
 
 
 def logo_upload_path(instance, filename):
@@ -57,7 +70,7 @@ class Business(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            base = slugify(self.name, allow_unicode=False) or "isletme"
+            base = turkish_slugify(self.name) or "isletme"
             slug, i = base, 2
             while Business.objects.filter(slug=slug).exists():
                 slug = f"{base}-{i}"
@@ -72,6 +85,7 @@ class Category(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="categories")
     name = models.CharField(max_length=100)
     name_en = models.CharField("İngilizce ad", max_length=100, blank=True)
+    icon = models.CharField(max_length=20, choices=CATEGORY_ICONS, default="utensils")
     image = models.ImageField(
         upload_to=category_upload_path, null=True, blank=True, validators=[validate_image_file]
     )
