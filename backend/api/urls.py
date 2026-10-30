@@ -1,53 +1,35 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenRefreshView
-from .views import (
-    RegisterView, CustomTokenObtainPairView,
-    BusinessListCreateView, BusinessRetrieveUpdateDestroyView,
-    CategoryViewSet, ProductListCreateView, ProductRetrieveUpdateDestroyView,
-    generate_qr, public_categories, CommentViewSet,
-    public_comments, public_wifi_info, WiFiInfoDetailUpdateView,
-    create_waiter_call, BusinessWaiterCallListView, get_user_info,
-    WaiterCallViewSet,
-)
+
+from . import auth_views, views
 
 router = DefaultRouter()
-router.register(r'comments', CommentViewSet, basename='comments')
-router.register(r'categories', CategoryViewSet, basename='category')
-router.register(r'waiter-calls', WaiterCallViewSet, basename='waitercall')
-# waiter-calls için ViewSet kullanmayacağız çünkü özel endpoint var
+router.register("businesses", views.BusinessViewSet, basename="business")
+router.register("categories", views.CategoryViewSet, basename="category")
+router.register("products", views.ProductViewSet, basename="product")
+router.register("comments", views.CommentViewSet, basename="comment")
+router.register("waiter-calls", views.WaiterCallViewSet, basename="waitercall")
+
+auth_patterns = [
+    path("register/", auth_views.RegisterView.as_view(), name="register"),
+    path("login/", auth_views.LoginView.as_view(), name="login"),
+    path("refresh/", auth_views.RefreshView.as_view(), name="refresh"),
+    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path("me/", auth_views.MeView.as_view(), name="me"),
+]
+
+# Müşteriye açık uç noktalar ayrı bir önek altında; yönetim router'ının
+# `<pk>/` desenleriyle çakışmaz.
+public_patterns = [
+    path("<slug:slug>/", views.PublicMenuView.as_view(), name="public-menu"),
+    path("<slug:slug>/comments/", views.PublicCommentView.as_view(), name="public-comments"),
+    path(
+        "<slug:slug>/waiter-calls/", views.PublicWaiterCallView.as_view(), name="public-waiter-call"
+    ),
+]
 
 urlpatterns = [
-    path('', include(router.urls)),
-
-    # Auth
-    path('register/', RegisterView.as_view(), name='register'),
-    path('login/', CustomTokenObtainPairView.as_view(), name='login'),
-    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-   path('user-info/', get_user_info, name='user-info'),
-    # İşletmeler
-    path('businesses/', BusinessListCreateView.as_view(), name='business-list'),
-    path('businesses/<slug:slug>/', BusinessRetrieveUpdateDestroyView.as_view(), name='business-detail'),
-
-    # Public QR menü kategorileri
-    path('public/categories/', public_categories, name='public-category-list'),
-
-    # Ürünler
-    path('products/', ProductListCreateView.as_view(), name='product-list-create'),
-    path('products/<int:id>/', ProductRetrieveUpdateDestroyView.as_view(), name='product-detail'),
-
-    # Yorumlar (public)
-    path("comments/public/", public_comments, name="public-comments"),
-
-    # QR kod
-    path('qr/generate/', generate_qr, name='generate_qr'),
-
-    # Wi-Fi
-    path('businesses/<slug:business_slug>/wifi-info/', WiFiInfoDetailUpdateView.as_view(), name='wifi-info-detail'),
-    path('public/wifi/<slug:business_slug>/', public_wifi_info, name='public-wifi-info'),
-
-    # Garson çağırma
-    path('waiter-calls/public/', create_waiter_call, name='public-waiter-call'),
-    path('businesses/<slug:business_slug>/waiter-calls/', BusinessWaiterCallListView.as_view(), name='business-waiter-calls'),
+    path("auth/", include(auth_patterns)),
+    path("public/", include(public_patterns)),
+    path("", include(router.urls)),
 ]

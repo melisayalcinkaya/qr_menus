@@ -4,6 +4,7 @@ QR Menü projesinin Django ayarları.
 Gizli ya da ortama göre değişen her değer ortam değişkenlerinden okunur.
 Yerelde `.env` dosyası kullanılabilir (bkz. `.env.example`).
 """
+
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "api",
 ]
@@ -120,16 +122,53 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
+    # Varsayılan kapalı: herkese açık uç noktalar bunu açıkça AllowAny ile ezer
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 20,
+    "PAGE_SIZE": 50,
+    "DEFAULT_THROTTLE_RATES": {
+        "auth": os.environ.get("THROTTLE_AUTH", "10/min"),
+        "public_comment": os.environ.get("THROTTLE_PUBLIC_COMMENT", "5/hour"),
+        "public_waiter_call": os.environ.get("THROTTLE_PUBLIC_WAITER_CALL", "6/hour"),
+    },
+    # Ters vekil (Render vb.) arkasında istemci IP'si X-Forwarded-For'un
+    # sağdan N'inci değeridir; soldaki değerleri istemci uydurabilir.
+    "NUM_PROXIES": int(os.environ.get("NUM_PROXIES", "0")) or None,
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 # Müşteri menüsünün yayınlandığı adres; QR kodları bu adrese yönlendirir
 PUBLIC_MENU_BASE_URL = os.environ.get("PUBLIC_MENU_BASE_URL", "http://localhost:5173").rstrip("/")
+
+CORS_ALLOW_CREDENTIALS = True  # yenileme çerezi için
+
+# Yüklemeler için üst sınır (görseller ayrıca 2 MB ile sınırlı)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+
+# --- Production güvenlik ayarları ---------------------------------------------
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", True)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "31536000"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = "same-origin"
+    X_FRAME_OPTIONS = "DENY"
+    CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"], "level": os.environ.get("LOG_LEVEL", "INFO")},
+}

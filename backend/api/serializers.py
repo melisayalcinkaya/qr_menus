@@ -1,258 +1,274 @@
-# serializers.py
-from rest_framework import serializers
-from django.contrib.auth.models import User
-from .models import Business, Category, Product, WiFiInfo, Comment, WaiterCall
 import json
 
+from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from rest_framework import serializers
+
+from .models import Business, Category, Comment, Product, WaiterCall
+
+User = get_user_model()
+
+
+# --- Kimlik doğrulama -------------------------------------------------------
+
+
 class RegisterSerializer(serializers.ModelSerializer):
-    password1 = serializers.CharField(write_only=True)
-    password2 = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, style={"input_type": "password"})
+    password2 = serializers.CharField(write_only=True, style={"input_type": "password"})
+    email = serializers.EmailField(required=True)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password1', 'password2']
+        fields = ["username", "email", "password", "password2"]
+
+    def validate_email(self, value):
+        if User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError("Bu e-posta ile kayıtlı bir hesap var.")
+        return value.lower()
 
     def validate(self, data):
-        if data['password1'] != data['password2']:
-            raise serializers.ValidationError("Şifreler uyuşmuyor.")
+        if data["password"] != data.pop("password2"):
+            raise serializers.ValidationError({"password2": "Şifreler eşleşmiyor."})
+        # Django'nun şifre kurallarını (uzunluk, yaygın şifre, yalnızca rakam...) uygula
+        candidate = User(username=data.get("username"), email=data.get("email"))
+        try:
+            validate_password(data["password"], user=candidate)
+        except Exception as exc:
+            raise serializers.ValidationError({"password": list(exc.messages)}) from exc
         return data
 
     def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password1']
-        )
-        return user
+        return User.objects.create_user(**validated_data)
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username", "email"]
+
+
+# --- Sahip (yönetim paneli) serializer'ları ----------------------------------
+
+
+class OwnedBusinessField(serializers.SlugRelatedField):
+    """Yalnızca isteği yapan kullanıcının işletmelerini kabul eden alan.
+
+    İstemci başka birinin işletme slug'ını gönderirse 'bulunamadı' hatası alır;
+    böylece kayıt başka bir işletmeye bağlanamaz (toplu atama / IDOR koruması).
+    """
+
+    def get_queryset(self):
+        request = self.context.get("request")
+        if request is None or not request.user.is_authenticated:
+            return Business.objects.none()
+        return Business.objects.filter(owner=request.user)
+
+
+class OwnedCategoryField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        request = self.context.get("request")
+        if request is None or not request.user.is_authenticated:
+            return Category.objects.none()
+        return Category.objects.filter(business__owner=request.user)
+
 
 class BusinessSerializer(serializers.ModelSerializer):
+    menu_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Business
-        fields = ['id', 'name', 'slug', 'logo', 'menu_type', 'created_at', 'updated_at']
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "logo",
+            "theme",
+            "wifi_ssid",
+            "wifi_password",
+            "wifi_enabled",
+            "menu_url",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["slug", "created_at", "updated_at"]
+
+    def get_menu_url(self, obj):
+        from django.conf import settings
+
+        return f"{settings.PUBLIC_MENU_BASE_URL}/m/{obj.slug}"
+
 
 class CategorySerializer(serializers.ModelSerializer):
-    business_slugs = serializers.ListField(
-        child=serializers.CharField(), write_only=True, required=False
-    )
-    businesses = BusinessSerializer(many=True, read_only=True)
-    business_names = serializers.SerializerMethodField(read_only=True)
+    business = OwnedBusinessField(slug_field="slug")
+    product_count = serializers.IntegerField(source="products.count", read_only=True)
 
     class Meta:
         model = Category
-        fields = [
-            'id', 'name', 'banner_image', 'business_slugs',
-            'businesses', 'business_names', 'created_at'
-        ]
-        extra_kwargs = {'banner_image': {'required': False}}
+        fields = ["id", "business", "name", "image", "position", "product_count", "created_at"]
+        read_only_fields = ["created_at"]
 
-    def get_business_names(self, obj):
-        return [b.name for b in obj.businesses.all()]
+    def validate_business(self, value):
+        # Var olan kategori başka işletmeye taşınamaz
+        if self.instance and self.instance.business_id != value.id:
+            raise serializers.ValidationError("Kategori başka bir işletmeye taşınamaz.")
+        return value
 
-    def validate(self, data):
-        request = self.context.get('request')
-        slugs = data.get('business_slugs', [])
-        
-        print(f"DEBUG VALIDATE: business_slugs = {slugs}")
-        print(f"DEBUG VALIDATE: type = {type(slugs)}")
-        
-        if request and request.method in ['POST', 'PUT', 'PATCH']:
-            # Eğer slugs string olarak gelmişse parse et
-            processed_slugs = []
-            
-            if isinstance(slugs, list):
-                for item in slugs:
-                    if isinstance(item, str):
-                        # Eğer item JSON array gibi görünüyorsa parse et
-                        if item.strip().startswith('[') and item.strip().endswith(']'):
-                            try:
-                                parsed = json.loads(item)
-                                if isinstance(parsed, list):
-                                    processed_slugs.extend(parsed)
-                                else:
-                                    processed_slugs.append(item)
-                            except json.JSONDecodeError:
-                                processed_slugs.append(item)
-                        else:
-                            processed_slugs.append(item)
-                    else:
-                        processed_slugs.append(item)
-            elif isinstance(slugs, str):
-                # Eğer string olarak gelmişse
-                if slugs.strip().startswith('[') and slugs.strip().endswith(']'):
-                    try:
-                        processed_slugs = json.loads(slugs)
-                    except json.JSONDecodeError:
-                        processed_slugs = [slugs]
-                else:
-                    processed_slugs = [slugs]
-            else:
-                processed_slugs = slugs or []
-            
-            # Slug'ları temizle (boşlukları kaldır)
-            processed_slugs = [str(slug).strip() for slug in processed_slugs if str(slug).strip()]
-            
-            print(f"DEBUG VALIDATE: Processed slugs = {processed_slugs}")
-            
-            # Kullanıcının işletmelerine erişim kontrolü
-            if request.user.is_authenticated and processed_slugs:
-                user_businesses = Business.objects.filter(
-                    slug__in=processed_slugs, 
-                    user=request.user
-                )
-                user_slugs = list(user_businesses.values_list('slug', flat=True))
-                
-                print(f"DEBUG: User businesses = {user_slugs}")
-                
-                # Eğer gönderilen slug'lardan bazıları kullanıcıya ait değilse
-                invalid_slugs = set(processed_slugs) - set(user_slugs)
-                if invalid_slugs:
-                    print(f"DEBUG: Invalid slugs = {invalid_slugs}")
-                    raise serializers.ValidationError({
-                        'business_slugs': f"Bu işletmelere erişiminiz yok: {', '.join(invalid_slugs)}"
-                    })
-            
-            data['business_slugs'] = processed_slugs
-        
-        return data
 
-    def create(self, validated_data):
-        print(f"DEBUG: create method - validated_data: {validated_data}")
-        slugs = validated_data.pop('business_slugs', [])
-        banner_image = validated_data.pop('banner_image', None)
-        
-        print(f"DEBUG: Creating category with name: {validated_data.get('name')}")
-        print(f"DEBUG: business_slugs: {slugs}")
-        
-        category = Category.objects.create(
-            name=validated_data.get('name'),
-            banner_image=banner_image if banner_image else None
-        )
-        
-        if slugs:
-            businesses = Business.objects.filter(slug__in=slugs)
-            print(f"DEBUG: Found businesses: {[b.slug for b in businesses]}")
-            category.businesses.set(businesses)
-        
-        return category
+def _clean_str_list(value, field):
+    if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
+        raise serializers.ValidationError(f"{field} bir metin listesi olmalı.")
+    cleaned = [v.strip()[:40] for v in value if v.strip()]
+    if len(cleaned) > 30:
+        raise serializers.ValidationError(f"{field} en fazla 30 öğe içerebilir.")
+    return cleaned
+
+
+class StringListField(serializers.Field):
+    """Metin listesi. Çok parçalı (multipart) formda JSON metni olarak da gelebilir."""
+
+    def to_internal_value(self, data):
+        if isinstance(data, str):
+            try:
+                data = json.loads(data) if data.strip() else []
+            except ValueError as exc:
+                raise serializers.ValidationError("Geçerli bir JSON listesi değil.") from exc
+        return _clean_str_list(data, self.field_name)
+
+    def to_representation(self, value):
+        return list(value or [])
+
 
 class ProductSerializer(serializers.ModelSerializer):
-    # category -> id
+    category = OwnedCategoryField()
+    category_name = serializers.CharField(source="category.name", read_only=True)
+    ingredients = StringListField(required=False)
+    allergens = StringListField(required=False)
+
     class Meta:
         model = Product
         fields = [
-            'id','category','name','description','price',
-            'image','image_url','is_active','is_popular','preparation_time',
-            'ingredients','allergens','created_at'
+            "id",
+            "category",
+            "category_name",
+            "name",
+            "description",
+            "price",
+            "image",
+            "is_active",
+            "is_popular",
+            "preparation_time",
+            "ingredients",
+            "allergens",
+            "position",
+            "created_at",
+            "updated_at",
         ]
-        read_only_fields = ['created_at']
+        read_only_fields = ["created_at", "updated_at"]
 
-    def to_representation(self, instance):
-        rep = super().to_representation(instance)
-        # kolay frontend gösterimi
-        rep['image'] = instance.image.url if instance.image else (instance.image_url or None)
-        rep['category_name'] = instance.category.name
-        return rep
+    def validate_category(self, value):
+        # Ürün yalnızca aynı işletmenin kategorileri arasında taşınabilir
+        if self.instance and self.instance.category.business_id != value.business_id:
+            raise serializers.ValidationError("Ürün başka bir işletmeye taşınamaz.")
+        return value
 
-    def create(self, validated_data):
-        # ingredients/allergens POSTMultipart ile gelirse string olabilir; JSON parse et
-        for key in ('ingredients', 'allergens'):
-            val = validated_data.get(key)
-            if isinstance(val, str):
-                try:
-                    validated_data[key] = json.loads(val)
-                except:
-                    validated_data[key] = []
-        return super().create(validated_data)
 
-    def update(self, instance, validated_data):
-        for key in ('ingredients', 'allergens'):
-            val = validated_data.get(key)
-            if isinstance(val, str):
-                try:
-                    validated_data[key] = json.loads(val)
-                except:
-                    validated_data[key] = instance.__dict__.get(key, [])
-        return super().update(instance, validated_data)
-    
-class WiFiInfoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = WiFiInfo
-        fields = '__all__'
-        fields = ['ssid', 'password', 'is_enabled']
-
-# serializers.py - Sadece işletme yorumu için
 class CommentSerializer(serializers.ModelSerializer):
-    business_slug = serializers.CharField(write_only=True)
-    
+    """İşletme sahibinin gördüğü yorum. Metin değiştirilemez, yalnızca durum yönetilir."""
+
+    business = serializers.SlugRelatedField(slug_field="slug", read_only=True)
+
     class Meta:
         model = Comment
         fields = [
-            "id", "business", "business_slug",
-            "user_name", "user_email", "comment", "rating",
-            "status", "created_at", "approved_at", "approved_by"
+            "id",
+            "business",
+            "author_name",
+            "text",
+            "rating",
+            "status",
+            "reviewed_at",
+            "created_at",
         ]
-        read_only_fields = ["id", "business", "status", "created_at", "approved_at", "approved_by"]
+        read_only_fields = fields
 
-    def validate(self, data):
-        # İşletme slug kontrolü
-        business_slug = data.get('business_slug')
-        if not business_slug:
-            raise serializers.ValidationError({"business_slug": "Business slug gereklidir."})
-        
-        try:
-            business = Business.objects.get(slug=business_slug)
-        except Business.DoesNotExist:
-            raise serializers.ValidationError({"business_slug": "Geçersiz işletme slug'ı."})
-        
-        data['business'] = business
-        
-        # Kullanıcı adı ve email için varsayılan değerler
-        if not data.get('user_name'):
-            data['user_name'] = "Anonim"
-        if not data.get('user_email'):
-            data['user_email'] = "guest@example.com"
-            
-        return data
 
-    def create(self, validated_data):
-        # Doğrulama sırasında eklenen business alanını kullan
-        validated_data.pop('business_slug', None)
-        
-        return super().create(validated_data)
-    
-
-# serializers.py - WaiterCallSerializer ekleyin
 class WaiterCallSerializer(serializers.ModelSerializer):
-    business_name = serializers.CharField(source='business.name', read_only=True)
-    business_slug = serializers.CharField(source='business.slug', read_only=True)
-    
-    class Meta:
-        model = WaiterCall
-        fields = [
-            'id', 'business', 'business_name', 'business_slug',
-            'table_number', 'location', 'status', 'called_at',
-            'completed_at', 'notes'
-        ]
-        read_only_fields = ['id', 'called_at', 'completed_at']
+    business = serializers.SlugRelatedField(slug_field="slug", read_only=True)
 
-# serializers.py - WaiterCallCreateSerializer düzeltmesi
-class WaiterCallCreateSerializer(serializers.ModelSerializer):
-    business_slug = serializers.CharField(write_only=True)
-    
     class Meta:
         model = WaiterCall
-        fields = ['business_slug', 'table_number', 'location', 'notes']
-    
-    def validate(self, data):
-        business_slug = data.get('business_slug')
-        try:
-            business = Business.objects.get(slug=business_slug)
-            data['business'] = business
-        except Business.DoesNotExist:
-            raise serializers.ValidationError({"business_slug": "Geçersiz işletme slug'ı."})
-        
-        return data
-    
-    def create(self, validated_data):
-        validated_data.pop('business_slug', None)
-        return super().create(validated_data)
+        fields = ["id", "business", "table_number", "note", "status", "created_at", "completed_at"]
+        read_only_fields = fields
+
+
+# --- Herkese açık menü serializer'ları ---------------------------------------
+# Bu serializer'lar müşteriye gider; yalnızca menüde gösterilecek alanları içerir.
+
+
+class PublicProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = [
+            "id",
+            "name",
+            "description",
+            "price",
+            "image",
+            "is_popular",
+            "preparation_time",
+            "ingredients",
+            "allergens",
+        ]
+
+
+class PublicCategorySerializer(serializers.ModelSerializer):
+    products = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Category
+        fields = ["id", "name", "image", "products"]
+
+    def get_products(self, obj):
+        # Pasif ürünler müşteriye hiç gönderilmez (prefetch edilmiş listeden süzülür)
+        active = [p for p in obj.products.all() if p.is_active]
+        return PublicProductSerializer(active, many=True, context=self.context).data
+
+
+class PublicMenuSerializer(serializers.ModelSerializer):
+    categories = PublicCategorySerializer(many=True, read_only=True)
+    wifi = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Business
+        fields = ["name", "slug", "logo", "theme", "wifi", "categories"]
+
+    def get_wifi(self, obj):
+        if not obj.wifi_enabled or not obj.wifi_ssid:
+            return None
+        return {"ssid": obj.wifi_ssid, "password": obj.wifi_password}
+
+
+class PublicCommentSerializer(serializers.ModelSerializer):
+    """Müşterinin gördüğü/gönderdiği yorum. Kimlik veya iletişim bilgisi içermez."""
+
+    class Meta:
+        model = Comment
+        fields = ["id", "author_name", "text", "rating", "created_at"]
+        read_only_fields = ["id", "created_at"]
+        extra_kwargs = {"text": {"min_length": 3}}
+
+    def validate_author_name(self, value):
+        return value.strip() or "Misafir"
+
+
+class PublicWaiterCallSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WaiterCall
+        fields = ["id", "table_number", "note", "status", "created_at"]
+        read_only_fields = ["id", "status", "created_at"]
+
+    def validate_table_number(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Masa numarası gerekli.")
+        return value

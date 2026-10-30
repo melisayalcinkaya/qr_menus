@@ -1,395 +1,207 @@
-# views.py
-from rest_framework import generics, status, permissions, viewsets
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied
-from django.shortcuts import get_object_or_404
-from .models import Business, Category, Product, WiFiInfo, Comment, WaiterCall
-from .serializers import RegisterSerializer, BusinessSerializer, CategorySerializer, ProductSerializer, WiFiInfoSerializer, CommentSerializer , WaiterCallSerializer, WaiterCallCreateSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-import json
-from django.utils import timezone
-import qrcode
-import base64
 from io import BytesIO
-from rest_framework.decorators import api_view, permission_classes
-from django.conf import settings
-from rest_framework.decorators import permission_classes
-from rest_framework import serializers
-from django.db.models import Q
-from rest_framework import permissions
-from rest_framework.decorators import authentication_classes
 
-class RegisterView(generics.CreateAPIView):
-    serializer_class = RegisterSerializer
-    permission_classes = [AllowAny]
+import qrcode
+from django.db.models import Prefetch
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from rest_framework import generics, mixins, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_user_info(request):
-    user = request.user
-    return Response({
-        "id": user.id,
-        "username": user.username,
-        "email": user.email,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-    })
+from .models import Business, Category, Comment, Product, WaiterCall
+from .serializers import (
+    BusinessSerializer,
+    CategorySerializer,
+    CommentSerializer,
+    ProductSerializer,
+    PublicCommentSerializer,
+    PublicMenuSerializer,
+    PublicWaiterCallSerializer,
+    WaiterCallSerializer,
+)
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        token['username'] = user.username
-        return token
+# --- Yönetim paneli (yalnızca işletme sahibi) --------------------------------
+# Her queryset isteği yapan kullanıcıya göre süzülür. Başkasının kaydına
+# erişilmek istendiğinde 404 döner; böylece kaydın var olduğu bile sızmaz.
 
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
 
-class BusinessListCreateView(generics.ListCreateAPIView):
+class BusinessViewSet(viewsets.ModelViewSet):
     serializer_class = BusinessSerializer
     permission_classes = [IsAuthenticated]
+    lookup_field = "slug"
 
     def get_queryset(self):
-        return Business.objects.filter(user=self.request.user)
+        return Business.objects.filter(owner=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(owner=self.request.user)
 
-class BusinessRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = BusinessSerializer
-    lookup_field = 'slug'
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return Business.objects.filter(user=self.request.user)
-
-    def get_object(self):
-        queryset = self.get_queryset()
-        slug = self.kwargs.get('slug')
-        return get_object_or_404(queryset, slug=slug)
-
-    def perform_update(self, serializer):
-        serializer.save(user=self.request.user)
-
-class CategoryViewSet(viewsets.ModelViewSet):
-    serializer_class = CategorySerializer
-
-    def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            permission_classes = [AllowAny]
-        else:
-            permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
-
-    def get_queryset(self):
-        business_slug = self.request.query_params.get("business")
-        user = self.request.user
-
-        if self.action in ['list', 'retrieve']:
-            qs = Category.objects.all()
-        else:
-            qs = Category.objects.filter(businesses__user=user).distinct()
-
-        if business_slug:
-            qs = qs.filter(businesses__slug=business_slug)
-        return qs
-
-    def create(self, request, *args, **kwargs):
-        print(f"DEBUG: Create request data: {request.data}")
-        print(f"DEBUG: Request files: {request.FILES}")
-        print(f"DEBUG: Request user: {request.user}")
-        return super().create(request, *args, **kwargs)
-
-    def perform_create(self, serializer):
-        # Frontend'den business slugs listesi geliyor
-        slugs = self.request.data.get('business_slugs', [])
-        if isinstance(slugs, str):
-            # Eğer string olarak gelirse JSON parse et
-            slugs = json.loads(slugs)
-        instance = serializer.save()
-        # Sadece kullanıcının işletmeleriyle eşleştir
-        businesses = Business.objects.filter(slug__in=slugs, user=self.request.user)
-        instance.businesses.set(businesses)
-
-class CategoryListCreateView(generics.ListCreateAPIView):
-    serializer_class = CategorySerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user_businesses = Business.objects.filter(user=self.request.user)
-        return Category.objects.filter(businesses__in=user_businesses).distinct()
-
-    def perform_create(self, serializer):
-        slugs = self.request.data.get('business_slugs', None)
-        if isinstance(slugs, str):
-            slugs = json.loads(slugs)
-        businesses = Business.objects.filter(slug__in=slugs, user=self.request.user)
-        serializer.save()
-        serializer.instance.businesses.set(businesses)
-
-class CategoryRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = CategorySerializer
-    permission_classes = [IsAuthenticated]
-    lookup_field = "id"
-
-    def get_queryset(self):
-        user_businesses = Business.objects.filter(user=self.request.user)
-        return Category.objects.filter(businesses__in=user_businesses).distinct()
-
-# Ürün Listeleme (herkes görebilir) + Ekleme (sadece giriş yapanlar)
-class ProductListCreateView(generics.ListCreateAPIView):
-    serializer_class = ProductSerializer
-
-    def get_permissions(self):
-        if self.request.method == "GET":
-            return [AllowAny()]
-        return [IsAuthenticated()]
-
-    def get_queryset(self):
-        # business ve category query param alıyoruz
-        business_slug = self.request.query_params.get("business")
-        category_id = self.request.query_params.get("category")
-
-        queryset = Product.objects.all()
-
-        if business_slug:
-            queryset = queryset.filter(category__businesses__slug=business_slug)
-        if category_id:
-            queryset = queryset.filter(category_id=category_id)
-
-        return queryset.distinct()
-
-    def perform_create(self, serializer):
-        category_id = self.request.data.get("category")
-        category = Category.objects.filter(
-            id=category_id,
-            businesses__user=self.request.user
-        ).first()
-
-        if not category:
-            raise ValueError("Kategori bulunamadı veya bu kullanıcıya ait değil")
-
-        serializer.save(category=category)
-
-
-# Ürün Detay / Güncelle / Sil
-class ProductRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticated]
-    lookup_field = "id"
-
-    def get_queryset(self):
-        businesses = Business.objects.filter(user=self.request.user)
-        return Product.objects.filter(
-            category__businesses__in=businesses
-        ).distinct()
-    
-
-# QR Menü tarafı: Public kategori listesi
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def public_categories(request):
-    business_slug = request.query_params.get("business")
-    qs = Category.objects.all()
-    if business_slug:
-        qs = qs.filter(businesses__slug=business_slug)  # işletmeye göre filtrele
-    serializer = CategorySerializer(qs, many=True)
-    return Response(serializer.data)
-
-
-class WiFiInfoDetailUpdateView(generics.RetrieveUpdateAPIView):
-    serializer_class = WiFiInfoSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_object(self):
-        business_slug = self.kwargs['business_slug']
-        business = get_object_or_404(Business, slug=business_slug, user=self.request.user)
-        self.check_object_permissions(self.request, business)
-        wifi_info, created = WiFiInfo.objects.get_or_create(business=business)
-        return wifi_info
-    
-class CommentViewSet(viewsets.ModelViewSet):
-    serializer_class = CommentSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-
-        if user.is_anonymous:
-            # Giriş yapmamış kullanıcılar sadece onaylanmış yorumları görsün
-            return Comment.objects.filter(status="approved").select_related("business").order_by("-created_at")
-
-        # Giriş yapmış kullanıcı → kendi işletmesine ait yorumları görsün
-        return Comment.objects.filter(business__user=user).select_related("business").order_by("-created_at")
-
-    
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve', 'create']:
-            return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
-
-    def perform_create(self, serializer):
-        serializer.save(status='pending')
-
-    @action(detail=True, methods=["patch"], permission_classes=[permissions.IsAuthenticated])
-    def approve(self, request, pk=None):
-        comment = self.get_object()
-        
-        # Sadece işletme sahibi yorumları onaylayabilir
-        if comment.business.user != request.user:
-            raise PermissionDenied("Bu işlemi yapmaya yetkiniz yok.")
-            
-        comment.status = "approved"
-        comment.approved_by = request.user.username
-        comment.approved_at = timezone.now()
-        comment.save()
-        serializer = self.get_serializer(comment)
-        return Response(serializer.data)
-
-    @action(detail=True, methods=["patch"], permission_classes=[permissions.IsAuthenticated])
-    def reject(self, request, pk=None):
-        comment = self.get_object()
-        
-        # Sadece işletme sahibi yorumları reddedebilir
-        if comment.business.user != request.user:
-            raise PermissionDenied("Bu işlemi yapmaya yetkiniz yok.")
-            
-        comment.status = "rejected"
-        comment.save()
-        serializer = self.get_serializer(comment)
-        return Response(serializer.data)
-    
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def public_comments(request):
-    business_slug = request.query_params.get("business")
-    
-    if not business_slug:
-        return Response({"error": "Business slug gerekli."}, status=400)
-
-    qs = Comment.objects.filter(business__slug=business_slug, status="approved").select_related('business')
-    
-    qs = qs.order_by("-created_at")
-    serializer = CommentSerializer(qs, many=True)
-    return Response(serializer.data)
-
-@api_view(['POST'])
-def generate_qr(request):
-    business_id = request.data.get("business_id")
-    menu_type = request.data.get("menu_type", "menu1")
-
-    try:
-        business = Business.objects.get(id=business_id)
-        menu_type = menu_type.replace("_", "")
-        # Dinamik URL oluştur
-        url = f"http://10.65.156.131:5173/{menu_type}?business={business.slug}"
-        qr_img = qrcode.make(url)
+    @action(detail=True, methods=["get"])
+    def qr(self, request, slug=None):
+        """İşletmenin menü adresini içeren QR kodunu PNG olarak döndürür."""
+        business = self.get_object()
+        url = BusinessSerializer(business).data["menu_url"]
         buffer = BytesIO()
-        qr_img.save(buffer, format="PNG")
-        img_str = base64.b64encode(buffer.getvalue()).decode()
-
-        return Response({
-            "qr_code": img_str,
-            "url": url,
-            "business_slug": business.slug
-        })
-    except Business.DoesNotExist:
-        return Response({"error": "İşletme bulunamadı"}, status=404)
+        qrcode.make(url, box_size=10, border=2).save(buffer, format="PNG")
+        response = HttpResponse(buffer.getvalue(), content_type="image/png")
+        response["Content-Disposition"] = f'inline; filename="{business.slug}-qr.png"'
+        return response
 
 
-@api_view(['GET'])
-def category_products_view(request, category_id):
-    try:
-        category = Category.objects.get(id=category_id)
-        products = Product.objects.filter(category=category, is_active=True)
-        serializer = ProductSerializer(products, many=True, context={'request': request})
-        return Response(serializer.data)
-    except Category.DoesNotExist:
-        return Response({"error": "Kategori bulunamadı"}, status=404)
-    
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def public_wifi_info(request, business_slug):
-    try:
-        business = Business.objects.get(slug=business_slug)
-        wifi_info = WiFiInfo.objects.filter(business=business).first()
-        
-        print(f"WiFi Info for {business_slug}: {wifi_info}")
-        
-        if wifi_info:
-            serializer = WiFiInfoSerializer(wifi_info)
-            print(f"Serialized data: {serializer.data}")
-            return Response(serializer.data)
-        else:
-            print("No WiFi info found")
-            return Response({"ssid": "", "password": "", "is_enabled": False})
-    except Business.DoesNotExist:
-        print(f"Business not found: {business_slug}")
-        return Response({"error": "İşletme bulunamadı"}, status=404)
-    
+class OwnerFilterMixin:
+    """`?business=<slug>` ile sahibin işletmelerinden birine süzme."""
 
-class WaiterCallViewSet(viewsets.ModelViewSet):
-    serializer_class = WaiterCallSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    business_lookup = "business__slug"
+
+    def filter_by_business(self, qs):
+        slug = self.request.query_params.get("business")
+        return qs.filter(**{self.business_lookup: slug}) if slug else qs
+
+
+class CategoryViewSet(OwnerFilterMixin, viewsets.ModelViewSet):
+    serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Sadece kullanıcının kendi işletmelerinin çağrıları
-        user_businesses = Business.objects.filter(user=self.request.user)
-        return WaiterCall.objects.filter(business__in=user_businesses)
+        qs = Category.objects.filter(business__owner=self.request.user).select_related("business")
+        return self.filter_by_business(qs)
 
-    def get_serializer_class(self):
-        if self.action == 'create':
-            return WaiterCallCreateSerializer
-        return WaiterCallSerializer
 
-    @action(detail=True, methods=['patch'])
-    def complete(self, request, pk=None):
+class ProductViewSet(OwnerFilterMixin, viewsets.ModelViewSet):
+    serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated]
+    business_lookup = "category__business__slug"
+
+    def get_queryset(self):
+        qs = Product.objects.filter(category__business__owner=self.request.user).select_related(
+            "category"
+        )
+        category = self.request.query_params.get("category")
+        if category:
+            qs = qs.filter(category_id=category)
+        return self.filter_by_business(qs)
+
+
+class CommentViewSet(
+    OwnerFilterMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Sahip yorumları görür, onaylar/reddeder veya siler; metni değiştiremez."""
+
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = Comment.objects.filter(business__owner=self.request.user).select_related("business")
+        status_filter = self.request.query_params.get("status")
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+        return self.filter_by_business(qs)
+
+    def _review(self, new_status):
+        comment = self.get_object()
+        comment.status = new_status
+        comment.reviewed_at = timezone.now()
+        comment.save(update_fields=["status", "reviewed_at"])
+        return Response(self.get_serializer(comment).data)
+
+    @action(detail=True, methods=["post"])
+    def approve(self, request, pk=None):
+        return self._review("approved")
+
+    @action(detail=True, methods=["post"])
+    def reject(self, request, pk=None):
+        return self._review("rejected")
+
+
+class WaiterCallViewSet(
+    OwnerFilterMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
+):
+    serializer_class = WaiterCallSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = WaiterCall.objects.filter(business__owner=self.request.user).select_related("business")
+        status_filter = self.request.query_params.get("status")
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+        return self.filter_by_business(qs)
+
+    def _close(self, new_status):
         call = self.get_object()
-        call.status = 'completed'
+        if call.status != "pending":
+            return Response(
+                {"detail": "Bu çağrı zaten kapatılmış."}, status=status.HTTP_409_CONFLICT
+            )
+        call.status = new_status
         call.completed_at = timezone.now()
-        call.save()
-        return Response(WaiterCallSerializer(call).data)
+        call.save(update_fields=["status", "completed_at"])
+        return Response(self.get_serializer(call).data)
 
-    @action(detail=True, methods=['patch'])
+    @action(detail=True, methods=["post"])
+    def complete(self, request, pk=None):
+        return self._close("completed")
+
+    @action(detail=True, methods=["post"])
     def cancel(self, request, pk=None):
-        call = self.get_object()
-        call.status = 'cancelled'
-        call.save()
-        return Response(WaiterCallSerializer(call).data)
-
-# Public endpoint - müşterilerin çağrı oluşturması için
-@api_view(['POST'])
-@permission_classes([AllowAny])
-@authentication_classes([])
-def create_waiter_call(request):
-    print("Public waiter call endpoint called")
-    print("Request data:", request.data)
-
-    business_slug = request.data.get("business_slug")
-    if not business_slug:
-        return Response({"error": "business_slug is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-    # İlgili işletmeyi bul
-    try:
-        business = Business.objects.get(slug=business_slug)
-    except Business.DoesNotExist:
-        return Response({"error": "Invalid business_slug"}, status=status.HTTP_404_NOT_FOUND)
-
-    serializer = WaiterCallCreateSerializer(data=request.data)
-    if serializer.is_valid():
-        instance = serializer.save(business=business)  # 🔑 İşletmeyi manuel bağladık
-        print("Saved successfully:", instance.id)
-        return Response(WaiterCallSerializer(instance).data, status=status.HTTP_201_CREATED)
-
-    print("Serializer errors:", serializer.errors)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return self._close("cancelled")
 
 
-class BusinessWaiterCallListView(generics.ListAPIView):
-    serializer_class = WaiterCallSerializer
+# --- Herkese açık menü (müşteri) ---------------------------------------------
+
+
+def get_public_business(slug):
+    return get_object_or_404(Business, slug=slug)
+
+
+class PublicMenuView(generics.RetrieveAPIView):
+    """Menü sayfası için işletme, kategoriler ve aktif ürünler tek istekte."""
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    serializer_class = PublicMenuSerializer
+
+    def get_object(self):
+        qs = Business.objects.prefetch_related(
+            Prefetch("categories", queryset=Category.objects.prefetch_related("products"))
+        )
+        return get_object_or_404(qs, slug=self.kwargs["slug"])
+
+
+class PublicCommentView(generics.ListCreateAPIView):
+    """Onaylı yorumları listeler; yeni yorumlar onay bekler."""
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    serializer_class = PublicCommentSerializer
+    throttle_scope = "public_comment"
+
+    def get_throttles(self):
+        # Hız sınırı yalnızca yorum gönderirken uygulanır, okurken değil
+        if self.request.method == "POST":
+            return [ScopedRateThrottle()]
+        return super().get_throttles()
 
     def get_queryset(self):
-        business_slug = self.kwargs['business_slug']
-        return WaiterCall.objects.filter(business__slug=business_slug).order_by('-called_at')
+        business = get_public_business(self.kwargs["slug"])
+        return Comment.objects.filter(business=business, status="approved")
+
+    def perform_create(self, serializer):
+        serializer.save(business=get_public_business(self.kwargs["slug"]), status="pending")
+
+
+class PublicWaiterCallView(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    serializer_class = PublicWaiterCallSerializer
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "public_waiter_call"
+
+    def perform_create(self, serializer):
+        serializer.save(business=get_public_business(self.kwargs["slug"]))
