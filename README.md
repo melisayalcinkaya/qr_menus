@@ -39,6 +39,10 @@ Basılı menüler güncellenemez, alerjen bilgisi taşımaz ve yabancı misafire
 - Yorum moderasyonu, kaydetmeden önce canlı tema önizlemesi
 - İstatistikler: günlük ziyaret, saatlere göre çağrı, ortalama yanıt süresi, puan dağılımı
 
+**Masaüstü çağrı ekranı** ([qr-menu-desktop](https://github.com/melisayalcinkaya/qr-menu-desktop))
+- Kasa ya da mutfak bilgisayarı için aynı API'yi kullanan PySide6 uygulaması: sistem tepsisinde çalışır, yeni çağrıda zil ve bildirim verir, tükenen ürünü tek tıkla gizler
+- Windows için tek dosyalık `.exe`
+
 **Geliştirici tarafı**
 - OpenAPI şeması ve Swagger arayüzü: `/api/docs/`
 - 66 backend + 16 frontend testi, %90 kapsam alt sınırı, uçtan uca duman testi yapan CI
@@ -74,8 +78,10 @@ flowchart LR
         A["Django REST Framework<br/>/api"]
         D[("SQLite / PostgreSQL")]
     end
+    K["Masaüstü çağrı ekranı<br/>(kasa / mutfak)"]
     M -- "herkese açık uç noktalar<br/>/api/public/" --> A
     P -- "JWT erişim belirteci<br/>+ HttpOnly yenileme çerezi" --> A
+    K -- "JWT, yenileme belirteci<br/>anahtar zincirinde" --> A
     W --> Tarayici
     A --> D
 ```
@@ -179,7 +185,7 @@ frontend/src/
 
 ## English summary
 
-QR Menu is a digital restaurant menu opened from a per-table QR code. Guests read the menu in Turkish or English, filter it by the 14 legally required allergen groups, and call a waiter with one tap; the owner sees calls live on a dashboard with an optional chime. Owners manage categories, products, tables (with printable PDF table cards), reviews and a theme with live preview, and get statistics such as average waiter response time.
+QR Menu is a digital restaurant menu opened from a per-table QR code (a desktop call screen for the till lives in [qr-menu-desktop](https://github.com/melisayalcinkaya/qr-menu-desktop)). Guests read the menu in Turkish or English, filter it by the 14 legally required allergen groups, and call a waiter with one tap; the owner sees calls live on a dashboard with an optional chime. Owners manage categories, products, tables (with printable PDF table cards), reviews and a theme with live preview, and get statistics such as average waiter response time.
 
 Built with Django REST Framework and React. The first version had several access-control flaws (anonymous access to waiter calls, cross-tenant product moves, leaked reviewer e-mails, tokens in localStorage); all are fixed and covered by regression tests. Other highlights: OpenAPI docs, CSP and security headers, HttpOnly refresh-token rotation, a single Docker image, and CI that boots the image and smoke-tests it.
 
