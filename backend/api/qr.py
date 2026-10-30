@@ -19,6 +19,11 @@ FONT_BOLD_CANDIDATES = [
 ]
 
 
+def table_title(label):
+    """'5' -> 'Masa 5', 'Bahçe 1' -> 'Bahçe 1' (ön yüzdeki tableName ile aynı kural)."""
+    return f"Masa {label}" if str(label).strip().isdigit() else str(label)
+
+
 def qr_image(url):
     qr = qrcode.QRCode(error_correction=ERROR_CORRECT_M, box_size=10, border=2)
     qr.add_data(url)
@@ -87,7 +92,7 @@ def table_cards_pdf(business_name, cards):
         pdf.setFont(bold, 13)
         pdf.drawCentredString(cx, y + card_h - 12 * mm, business_name[:40])
         pdf.setFont(bold, 22)
-        pdf.drawCentredString(cx, y + card_h - 22 * mm, f"Masa {label}")
+        pdf.drawCentredString(cx, y + card_h - 22 * mm, table_title(label))
 
         qr_size = min(card_w, card_h) - 42 * mm
         pdf.drawImage(

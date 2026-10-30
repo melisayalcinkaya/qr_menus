@@ -567,6 +567,9 @@ class Command(BaseCommand):
                 Table.objects.create(business=business, label=label, position=i)
                 for i, label in enumerate(["1", "2", "3", "4", "5", "6", "Bahçe 1", "Bahçe 2"])
             ]
+            # Tanıtım sayfasındaki "garson çağırmayı dene" bağlantısı için sabit belirteç.
+            # Gerçek masalarda belirteç her zaman rastgele üretilir.
+            Table.objects.filter(pk=tables[3].pk).update(token=f"demo-{theme}-4")
             self._history(business, tables, rng)
             self.stdout.write(f"  {business.name} ({theme}) -> /m/{business.slug}")
 

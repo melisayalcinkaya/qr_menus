@@ -405,8 +405,8 @@ class PublicWaiterCallSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WaiterCall
-        fields = ["id", "table", "table_label", "note", "status", "created_at"]
-        read_only_fields = ["id", "table_label", "status", "created_at"]
+        fields = ["id", "table", "table_label", "note", "status", "created_at", "completed_at"]
+        read_only_fields = ["id", "table_label", "status", "created_at", "completed_at"]
 
     def validate_table(self, token):
         business = self.context["business"]
