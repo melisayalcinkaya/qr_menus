@@ -1,0 +1,22 @@
+# Render Blueprint: tek Docker servisi, ücretsiz plan, Frankfurt.
+# Ücretsiz planda disk kalıcı değildir; her açılışta demo verisi yeniden yüklenir.
+services:
+  - type: web
+    name: qr-menus
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /api/meta/
+    autoDeploy: true
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "false"
+      # Render, X-Forwarded-For'a kendi vekil adresini ekler; istemci IP'si sağdan 1. değerdir
+      - key: NUM_PROXIES
+        value: "1"
+      - key: SERVE_MEDIA
+        value: "true"
+      - key: WEB_CONCURRENCY
+        value: "2"
