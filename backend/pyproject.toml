@@ -1,0 +1,15 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["api/migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "DJ", "S"]
+ignore = ["S101", "S105", "S106"]
+
+[tool.ruff.lint.per-file-ignores]
+"api/tests/*" = ["S"]
+
+[tool.coverage.run]
+source = ["api", "config"]
+omit = ["*/migrations/*", "*/tests/*", "config/asgi.py", "config/wsgi.py"]
