@@ -7,6 +7,7 @@ okuyamadığı HttpOnly bir çereze yazılır. Böylece bir XSS açığı olsa b
 """
 
 from django.conf import settings
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -16,7 +17,14 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import RegisterSerializer, UserSerializer
+from .serializers import (
+    AccessTokenSerializer,
+    LoginSerializer,
+    RefreshRequestSerializer,
+    RegisterSerializer,
+    TokenResponseSerializer,
+    UserSerializer,
+)
 
 REFRESH_COOKIE = "qrmenu_refresh"
 REFRESH_COOKIE_PATH = "/api/auth/"
@@ -57,6 +65,7 @@ def token_response(user, refresh, status_code=status.HTTP_200_OK):
     return response
 
 
+@extend_schema(responses={201: TokenResponseSerializer})
 class RegisterView(PublicAuthView, generics.CreateAPIView):
     serializer_class = RegisterSerializer
     throttle_classes = [ScopedRateThrottle]
@@ -73,6 +82,7 @@ class LoginView(PublicAuthView, APIView):
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "auth"
 
+    @extend_schema(request=LoginSerializer, responses={200: TokenResponseSerializer})
     def post(self, request):
         serializer = TokenObtainPairSerializer(data=request.data)
         try:
@@ -88,6 +98,7 @@ class RefreshView(PublicAuthView, APIView):
     Tarayıcı belirteci çerezle, masaüstü istemcileri gövdeyle gönderir.
     """
 
+    @extend_schema(request=RefreshRequestSerializer, responses={200: AccessTokenSerializer})
     def post(self, request):
         raw = request.data.get("refresh") or request.COOKIES.get(REFRESH_COOKIE)
         if not raw:
@@ -104,6 +115,7 @@ class RefreshView(PublicAuthView, APIView):
 
 
 class LogoutView(PublicAuthView, APIView):
+    @extend_schema(request=RefreshRequestSerializer, responses={204: None})
     def post(self, request):
         raw = request.data.get("refresh") or request.COOKIES.get(REFRESH_COOKIE)
         if raw:

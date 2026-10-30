@@ -3,6 +3,8 @@ from django.db.models import Prefetch
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -16,6 +18,7 @@ from .serializers import (
     BusinessSerializer,
     CategorySerializer,
     CommentSerializer,
+    MetaSerializer,
     ProductSerializer,
     PublicCommentSerializer,
     PublicMenuSerializer,
@@ -25,6 +28,8 @@ from .serializers import (
     menu_url,
 )
 from .stats import business_stats
+
+PNG = {(200, "image/png"): OpenApiTypes.BINARY}
 
 # --- Yönetim paneli (yalnızca işletme sahibi) --------------------------------
 # Her queryset isteği yapan kullanıcıya göre süzülür. Başkasının kaydına
@@ -37,17 +42,21 @@ class BusinessViewSet(viewsets.ModelViewSet):
     lookup_field = "slug"
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Business.objects.none()
         return Business.objects.filter(owner=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
+    @extend_schema(responses=PNG)
     @action(detail=True, methods=["get"])
     def qr(self, request, slug=None):
         """İşletmenin menü adresini içeren QR kodunu PNG olarak döndürür."""
         business = self.get_object()
         return png_response(qr_png(menu_url(business)), f"{business.slug}-qr.png")
 
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
     @action(detail=True, methods=["get"])
     def stats(self, request, slug=None):
         """Panel için özet: ziyaretler, garson çağrıları, yanıt süresi, puanlar."""
@@ -57,6 +66,7 @@ class BusinessViewSet(viewsets.ModelViewSet):
             days = 30
         return Response(business_stats(self.get_object(), days))
 
+    @extend_schema(responses={(200, "application/pdf"): OpenApiTypes.BINARY})
     @action(detail=True, methods=["get"], url_path="table-cards")
     def table_cards(self, request, slug=None):
         """Tüm masaların QR kartlarını yazdırılabilir tek bir PDF olarak döndürür."""
@@ -83,6 +93,10 @@ class OwnerFilterMixin:
 
     business_lookup = "business__slug"
 
+    def schema_mode(self):
+        # Şema üretilirken istek kullanıcısı yoktur; boş queryset döndürmek yeterli
+        return getattr(self, "swagger_fake_view", False)
+
     def filter_by_business(self, qs):
         slug = self.request.query_params.get("business")
         return qs.filter(**{self.business_lookup: slug}) if slug else qs
@@ -93,6 +107,8 @@ class CategoryViewSet(OwnerFilterMixin, viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if self.schema_mode():
+            return Category.objects.none()
         qs = Category.objects.filter(business__owner=self.request.user).select_related("business")
         return self.filter_by_business(qs)
 
@@ -103,6 +119,8 @@ class ProductViewSet(OwnerFilterMixin, viewsets.ModelViewSet):
     business_lookup = "category__business__slug"
 
     def get_queryset(self):
+        if self.schema_mode():
+            return Product.objects.none()
         qs = Product.objects.filter(category__business__owner=self.request.user).select_related(
             "category"
         )
@@ -125,6 +143,8 @@ class CommentViewSet(
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if self.schema_mode():
+            return Comment.objects.none()
         qs = Comment.objects.filter(business__owner=self.request.user).select_related("business")
         status_filter = self.request.query_params.get("status")
         if status_filter:
@@ -152,9 +172,12 @@ class TableViewSet(OwnerFilterMixin, viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if self.schema_mode():
+            return Table.objects.none()
         qs = Table.objects.filter(business__owner=self.request.user).select_related("business")
         return self.filter_by_business(qs)
 
+    @extend_schema(responses=PNG)
     @action(detail=True, methods=["get"])
     def qr(self, request, pk=None):
         table = self.get_object()
@@ -175,6 +198,8 @@ class WaiterCallViewSet(
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if self.schema_mode():
+            return WaiterCall.objects.none()
         qs = WaiterCall.objects.filter(business__owner=self.request.user).select_related("business")
         status_filter = self.request.query_params.get("status")
         if status_filter:
@@ -312,6 +337,7 @@ class MetaView(generics.GenericAPIView):
 
     permission_classes = [AllowAny]
     authentication_classes = []
+    serializer_class = MetaSerializer
 
     def get(self, request):
         return Response(

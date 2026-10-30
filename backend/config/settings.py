@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
+    "drf_spectacular",
     "api",
 ]
 
@@ -124,6 +125,7 @@ REST_FRAMEWORK = {
     ),
     # Varsayılan kapalı: herkese açık uç noktalar bunu açıkça AllowAny ile ezer
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 50,
     "DEFAULT_THROTTLE_RATES": {
@@ -142,6 +144,21 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "QR Menü API",
+    "DESCRIPTION": (
+        "İşletme sahipleri için yönetim uç noktaları (JWT) ve müşteri menüsü için "
+        "herkese açık uç noktalar (/api/public/)."
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "ENUM_NAME_OVERRIDES": {
+        "CommentStatusEnum": "api.models.Comment.STATUS_CHOICES",
+        "WaiterCallStatusEnum": "api.models.WaiterCall.STATUS_CHOICES",
+    },
 }
 
 # Müşteri menüsünün yayınlandığı adres; QR kodları bu adrese yönlendirir

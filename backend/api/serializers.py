@@ -2,6 +2,7 @@ import json
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from .catalog import ALLERGEN_CODES, DIETARY_CODES
@@ -46,6 +47,43 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "username", "email"]
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(style={"input_type": "password"})
+
+
+class TokenResponseSerializer(serializers.Serializer):
+    access = serializers.CharField()
+    user = UserSerializer()
+
+
+class RefreshRequestSerializer(serializers.Serializer):
+    refresh = serializers.CharField(
+        required=False, help_text="Tarayıcıda boş bırakın; çerez kullanılır."
+    )
+
+
+class AccessTokenSerializer(serializers.Serializer):
+    access = serializers.CharField()
+
+
+class CatalogItemSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    tr = serializers.CharField()
+    en = serializers.CharField()
+
+
+class ThemeSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    label = serializers.CharField()
+
+
+class MetaSerializer(serializers.Serializer):
+    allergens = CatalogItemSerializer(many=True)
+    dietary = CatalogItemSerializer(many=True)
+    themes = ThemeSerializer(many=True)
 
 
 # --- Sahip (yönetim paneli) serializer'ları ----------------------------------
@@ -93,7 +131,7 @@ class BusinessSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["slug", "created_at", "updated_at"]
 
-    def get_menu_url(self, obj):
+    def get_menu_url(self, obj) -> str:
         return menu_url(obj)
 
 
@@ -131,6 +169,7 @@ def _clean_str_list(value, field):
     return cleaned
 
 
+@extend_schema_field({"type": "array", "items": {"type": "string"}})
 class StringListField(serializers.Field):
     """Metin listesi. Çok parçalı (multipart) formda JSON metni olarak da gelebilir.
 
@@ -233,7 +272,7 @@ class TableSerializer(serializers.ModelSerializer):
         fields = ["id", "business", "label", "token", "position", "menu_url", "created_at"]
         read_only_fields = ["token", "created_at"]
 
-    def get_menu_url(self, obj):
+    def get_menu_url(self, obj) -> str:
         return menu_url(obj.business, obj)
 
     def validate_business(self, value):
@@ -301,10 +340,21 @@ class PublicCategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ["id", "name", "name_en", "image", "products"]
 
+    @extend_schema_field(PublicProductSerializer(many=True))
     def get_products(self, obj):
         # Pasif ürünler müşteriye hiç gönderilmez (prefetch edilmiş listeden süzülür)
         active = [p for p in obj.products.all() if p.is_active]
         return PublicProductSerializer(active, many=True, context=self.context).data
+
+
+class PublicWifiSerializer(serializers.Serializer):
+    ssid = serializers.CharField()
+    password = serializers.CharField()
+
+
+class PublicTableSerializer(serializers.Serializer):
+    label = serializers.CharField()
+    token = serializers.CharField()
 
 
 class PublicMenuSerializer(serializers.ModelSerializer):
@@ -317,6 +367,7 @@ class PublicMenuSerializer(serializers.ModelSerializer):
         model = Business
         fields = ["name", "slug", "logo", "theme", "wifi", "table", "categories"]
 
+    @extend_schema_field(PublicTableSerializer(allow_null=True))
     def get_table(self, obj):
         # Geçerli bir masa belirteci varsa menü masaya özel açılır (garson çağırma etkin)
         token = self.context.get("table_token")
@@ -325,6 +376,7 @@ class PublicMenuSerializer(serializers.ModelSerializer):
         table = obj.tables.filter(token=token).first()
         return {"label": table.label, "token": table.token} if table else None
 
+    @extend_schema_field(PublicWifiSerializer(allow_null=True))
     def get_wifi(self, obj):
         if not obj.wifi_enabled or not obj.wifi_ssid:
             return None
