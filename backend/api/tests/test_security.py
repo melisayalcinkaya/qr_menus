@@ -1,6 +1,6 @@
 """İlk değerlendirmede bulunan açıklar için regresyon testleri."""
 
-from api.models import Comment, Product, WaiterCall
+from api.models import Comment, Product, Table, WaiterCall
 
 from .factories import TwoOwnersTestCase, make_image
 
@@ -8,7 +8,7 @@ from .factories import TwoOwnersTestCase, make_image
 class AnonymousAccessTests(TwoOwnersTestCase):
     def test_waiter_calls_are_not_public(self):
         # Eskiden /api/businesses/<slug>/waiter-calls/ herkese masa ve notları gösteriyordu
-        WaiterCall.objects.create(business=self.cafe, table_number="5", note="alerjim var")
+        WaiterCall.objects.create(business=self.cafe, table_label="5", note="alerjim var")
         self.assertEqual(self.client.get("/api/waiter-calls/").status_code, 401)
         self.assertEqual(self.client.get(f"/api/businesses/{self.cafe.slug}/").status_code, 401)
 
@@ -86,8 +86,18 @@ class TenantIsolationTests(TwoOwnersTestCase):
         c.refresh_from_db()
         self.assertEqual(c.status, "pending")
 
+    def test_cannot_touch_foreign_tables(self):
+        table = Table.objects.create(business=self.bistro, label="9")
+        self.assertEqual(self.client.get(f"/api/tables/{table.id}/qr/").status_code, 404)
+        r = self.client.post(f"/api/tables/{table.id}/regenerate-token/")
+        self.assertEqual(r.status_code, 404)
+        r = self.client.post("/api/tables/", {"business": self.bistro.slug, "label": "X"})
+        self.assertEqual(r.status_code, 400)
+        r = self.client.get(f"/api/businesses/{self.bistro.slug}/table-cards/")
+        self.assertEqual(r.status_code, 404)
+
     def test_cannot_close_foreign_waiter_call(self):
-        call = WaiterCall.objects.create(business=self.bistro, table_number="3")
+        call = WaiterCall.objects.create(business=self.bistro, table_label="3")
         self.assertEqual(
             self.client.post(f"/api/waiter-calls/{call.id}/complete/").status_code, 404
         )
@@ -98,7 +108,7 @@ class TenantIsolationTests(TwoOwnersTestCase):
         self.assertEqual(r.status_code, 405)
 
     def test_waiter_call_cannot_be_moved(self):
-        call = WaiterCall.objects.create(business=self.cafe, table_number="3")
+        call = WaiterCall.objects.create(business=self.cafe, table_label="3")
         r = self.client.patch(f"/api/waiter-calls/{call.id}/", {"business": self.bistro.id})
         self.assertEqual(r.status_code, 405)
 
@@ -164,13 +174,23 @@ class PublicInputValidationTests(TwoOwnersTestCase):
         self.assertEqual(codes[-1], 429)
 
     def test_waiter_call_rate_limited(self):
+        table = Table.objects.create(business=self.cafe, label="4")
         url = f"/api/public/{self.cafe.slug}/waiter-calls/"
-        codes = [self.client.post(url, {"table_number": "4"}).status_code for _ in range(8)]
+        codes = [self.client.post(url, {"table": table.token}).status_code for _ in range(8)]
         self.assertIn(429, codes)
 
-    def test_waiter_call_requires_table(self):
-        r = self.client.post(f"/api/public/{self.cafe.slug}/waiter-calls/", {"table_number": " "})
-        self.assertEqual(r.status_code, 400)
+    def test_waiter_call_requires_valid_table_token(self):
+        url = f"/api/public/{self.cafe.slug}/waiter-calls/"
+        self.assertEqual(self.client.post(url, {"table": "uydurma"}).status_code, 400)
+        # Başka işletmenin masa belirteci bu işletmede geçmez
+        other = Table.objects.create(business=self.bistro, label="1")
+        self.assertEqual(self.client.post(url, {"table": other.token}).status_code, 400)
+
+    def test_table_tokens_not_in_public_menu(self):
+        Table.objects.create(business=self.cafe, label="1")
+        data = self.client.get(f"/api/public/{self.cafe.slug}/").json()
+        self.assertIsNone(data["table"])
+        self.assertNotIn("token", str(data))
 
 
 class UploadValidationTests(TwoOwnersTestCase):

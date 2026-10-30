@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Business, Category, Comment, Product, WaiterCall
+from .models import Business, Category, Comment, Product, Table, WaiterCall
 
 
 @admin.register(Business)
@@ -33,5 +33,12 @@ class CommentAdmin(admin.ModelAdmin):
 
 @admin.register(WaiterCall)
 class WaiterCallAdmin(admin.ModelAdmin):
-    list_display = ["business", "table_number", "status", "created_at"]
+    list_display = ["business", "table_label", "status", "created_at"]
     list_filter = ["status"]
+
+
+@admin.register(Table)
+class TableAdmin(admin.ModelAdmin):
+    list_display = ["label", "business", "position"]
+    list_filter = ["business"]
+    readonly_fields = ["token"]

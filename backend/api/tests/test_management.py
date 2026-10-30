@@ -52,7 +52,7 @@ class OwnerFlowTests(TwoOwnersTestCase):
         )
 
     def test_waiter_call_lifecycle(self):
-        call = WaiterCall.objects.create(business=self.cafe, table_number="7")
+        call = WaiterCall.objects.create(business=self.cafe, table_label="7")
         pending = self.client.get("/api/waiter-calls/?status=pending").json()["results"]
         self.assertEqual(len(pending), 1)
         self.assertEqual(

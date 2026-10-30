@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from .models import Business, Category, Comment, Product, WaiterCall
+from .models import Business, Category, Comment, Product, Table, WaiterCall
 
 User = get_user_model()
 
@@ -93,9 +93,7 @@ class BusinessSerializer(serializers.ModelSerializer):
         read_only_fields = ["slug", "created_at", "updated_at"]
 
     def get_menu_url(self, obj):
-        from django.conf import settings
-
-        return f"{settings.PUBLIC_MENU_BASE_URL}/m/{obj.slug}"
+        return menu_url(obj)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -192,12 +190,57 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+def menu_url(business, table=None):
+    from django.conf import settings
+
+    url = f"{settings.PUBLIC_MENU_BASE_URL}/m/{business.slug}"
+    return f"{url}?masa={table.token}" if table else url
+
+
+class TableSerializer(serializers.ModelSerializer):
+    business = OwnedBusinessField(slug_field="slug")
+    menu_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Table
+        fields = ["id", "business", "label", "token", "position", "menu_url", "created_at"]
+        read_only_fields = ["token", "created_at"]
+
+    def get_menu_url(self, obj):
+        return menu_url(obj.business, obj)
+
+    def validate_business(self, value):
+        if self.instance and self.instance.business_id != value.id:
+            raise serializers.ValidationError("Masa başka bir işletmeye taşınamaz.")
+        return value
+
+    def validate(self, data):
+        business = data.get("business") or self.instance.business
+        label = data.get("label", getattr(self.instance, "label", "")).strip()
+        clash = Table.objects.filter(business=business, label__iexact=label)
+        if self.instance:
+            clash = clash.exclude(pk=self.instance.pk)
+        if clash.exists():
+            raise serializers.ValidationError({"label": "Bu işletmede aynı adlı bir masa var."})
+        data["label"] = label
+        return data
+
+
 class WaiterCallSerializer(serializers.ModelSerializer):
     business = serializers.SlugRelatedField(slug_field="slug", read_only=True)
 
     class Meta:
         model = WaiterCall
-        fields = ["id", "business", "table_number", "note", "status", "created_at", "completed_at"]
+        fields = [
+            "id",
+            "business",
+            "table",
+            "table_label",
+            "note",
+            "status",
+            "created_at",
+            "completed_at",
+        ]
         read_only_fields = fields
 
 
@@ -238,9 +281,19 @@ class PublicMenuSerializer(serializers.ModelSerializer):
     categories = PublicCategorySerializer(many=True, read_only=True)
     wifi = serializers.SerializerMethodField()
 
+    table = serializers.SerializerMethodField()
+
     class Meta:
         model = Business
-        fields = ["name", "slug", "logo", "theme", "wifi", "categories"]
+        fields = ["name", "slug", "logo", "theme", "wifi", "table", "categories"]
+
+    def get_table(self, obj):
+        # Geçerli bir masa belirteci varsa menü masaya özel açılır (garson çağırma etkin)
+        token = self.context.get("table_token")
+        if not token:
+            return None
+        table = obj.tables.filter(token=token).first()
+        return {"label": table.label, "token": table.token} if table else None
 
     def get_wifi(self, obj):
         if not obj.wifi_enabled or not obj.wifi_ssid:
@@ -262,13 +315,20 @@ class PublicCommentSerializer(serializers.ModelSerializer):
 
 
 class PublicWaiterCallSerializer(serializers.ModelSerializer):
+    """Müşteri masa belirtecini (QR'daki `masa` parametresi) gönderir."""
+
+    table = serializers.CharField(write_only=True, max_length=20)
+
     class Meta:
         model = WaiterCall
-        fields = ["id", "table_number", "note", "status", "created_at"]
-        read_only_fields = ["id", "status", "created_at"]
+        fields = ["id", "table", "table_label", "note", "status", "created_at"]
+        read_only_fields = ["id", "table_label", "status", "created_at"]
 
-    def validate_table_number(self, value):
-        value = value.strip()
-        if not value:
-            raise serializers.ValidationError("Masa numarası gerekli.")
-        return value
+    def validate_table(self, token):
+        business = self.context["business"]
+        table = Table.objects.filter(business=business, token=token).first()
+        if table is None:
+            raise serializers.ValidationError(
+                "Masa bulunamadı. Lütfen masadaki QR kodu yeniden okutun."
+            )
+        return table

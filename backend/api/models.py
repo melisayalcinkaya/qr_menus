@@ -1,3 +1,5 @@
+import secrets
+
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -146,6 +148,37 @@ class Comment(models.Model):
         return f"{self.business} - {self.rating}/5"
 
 
+def new_table_token():
+    # Tahmin edilemez kısa belirteç; QR'ı masada okutmayan biri çağrı oluşturamaz
+    return secrets.token_urlsafe(9)
+
+
+class Table(models.Model):
+    """İşletmedeki bir masa. Her masanın QR kodu kendi belirtecini taşır."""
+
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="tables")
+    label = models.CharField(max_length=20, help_text="Örn. 5, Bahçe 2, Teras A")
+    token = models.CharField(max_length=20, unique=True, default=new_table_token, editable=False)
+    position = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["position", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["business", "label"], name="unique_table_label")
+        ]
+        verbose_name = "Masa"
+        verbose_name_plural = "Masalar"
+
+    def __str__(self):
+        return f"{self.business} / Masa {self.label}"
+
+    def regenerate_token(self):
+        """QR kodu fotoğraflanıp kötüye kullanılırsa eski kodu geçersiz kılar."""
+        self.token = new_table_token()
+        self.save(update_fields=["token"])
+
+
 class WaiterCall(models.Model):
     STATUS_CHOICES = [
         ("pending", "Bekliyor"),
@@ -154,7 +187,11 @@ class WaiterCall(models.Model):
     ]
 
     business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="waiter_calls")
-    table_number = models.CharField(max_length=10)
+    table = models.ForeignKey(
+        Table, on_delete=models.SET_NULL, null=True, blank=True, related_name="calls"
+    )
+    # Masa silinse bile geçmiş kayıtta hangi masa olduğu görünsün diye etiket kopyalanır
+    table_label = models.CharField(max_length=20)
     note = models.CharField(max_length=200, blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -167,4 +204,4 @@ class WaiterCall(models.Model):
         verbose_name_plural = "Garson çağrıları"
 
     def __str__(self):
-        return f"{self.business} - Masa {self.table_number}"
+        return f"{self.business} - Masa {self.table_label}"
