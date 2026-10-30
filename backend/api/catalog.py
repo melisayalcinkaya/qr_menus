@@ -27,6 +27,28 @@ DIETARY_TAGS = [
     ("spicy", "Acılı", "Spicy"),
 ]
 
+# Kategori ikonları (ön yüzde lucide ikonlarına eşlenir)
+CATEGORY_ICONS = [
+    ("utensils", "Genel"),
+    ("breakfast", "Kahvaltı"),
+    ("soup", "Çorba"),
+    ("salad", "Salata"),
+    ("sandwich", "Sandviç / Tost"),
+    ("pizza", "Pizza / Pide"),
+    ("meat", "Et"),
+    ("chicken", "Tavuk"),
+    ("fish", "Balık"),
+    ("bakery", "Fırın"),
+    ("dessert", "Tatlı"),
+    ("icecream", "Dondurma"),
+    ("coffee", "Kahve"),
+    ("tea", "Çay / Bitki çayı"),
+    ("cold_drink", "Soğuk içecek"),
+    ("juice", "Meyve suyu"),
+    ("wine", "Şarap"),
+    ("beer", "Bira"),
+]
+
 ALLERGEN_CODES = {code for code, _, _ in ALLERGENS}
 DIETARY_CODES = {code for code, _, _ in DIETARY_TAGS}
 

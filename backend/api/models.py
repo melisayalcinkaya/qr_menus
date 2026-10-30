@@ -8,7 +8,6 @@ from django.utils.text import slugify
 from .catalog import CATEGORY_ICONS
 from .validators import validate_image_file
 
-
 TURKISH_TO_ASCII = str.maketrans("çğıöşüÇĞİÖŞÜâîûÂÎÛ", "cgiosuCGIOSUaiuAIU")
 
 

@@ -84,6 +84,7 @@ class MetaSerializer(serializers.Serializer):
     allergens = CatalogItemSerializer(many=True)
     dietary = CatalogItemSerializer(many=True)
     themes = ThemeSerializer(many=True)
+    category_icons = ThemeSerializer(many=True)
 
 
 # --- Sahip (yönetim paneli) serializer'ları ----------------------------------
@@ -146,6 +147,7 @@ class CategorySerializer(serializers.ModelSerializer):
             "business",
             "name",
             "name_en",
+            "icon",
             "image",
             "position",
             "product_count",
@@ -338,7 +340,7 @@ class PublicCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ["id", "name", "name_en", "image", "products"]
+        fields = ["id", "name", "name_en", "icon", "image", "products"]
 
     @extend_schema_field(PublicProductSerializer(many=True))
     def get_products(self, obj):

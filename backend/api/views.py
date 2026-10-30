@@ -11,7 +11,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 
-from .catalog import ALLERGENS, DIETARY_TAGS, as_dicts
+from .catalog import ALLERGENS, CATEGORY_ICONS, DIETARY_TAGS, as_dicts
 from .models import Business, Category, Comment, MenuVisit, Product, Table, WaiterCall
 from .qr import qr_png, table_cards_pdf
 from .serializers import (
@@ -345,5 +345,6 @@ class MetaView(generics.GenericAPIView):
                 "allergens": as_dicts(ALLERGENS),
                 "dietary": as_dicts(DIETARY_TAGS),
                 "themes": [{"code": c, "label": label} for c, label in Business.THEME_CHOICES],
+                "category_icons": [{"code": c, "label": label} for c, label in CATEGORY_ICONS],
             }
         )
