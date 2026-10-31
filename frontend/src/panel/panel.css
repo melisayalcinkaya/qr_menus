@@ -867,6 +867,22 @@
   background: var(--p-amber-soft);
 }
 
+.call-card__kind {
+  color: var(--p-amber);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+/* Hesap istekleri petrol yeşiliyle ayrışır: garson hesapla gelmeli */
+.call-card--bill {
+  border-color: var(--p-primary);
+  background: var(--p-primary-soft);
+}
+
+.call-card--bill .call-card__kind {
+  color: var(--p-primary);
+}
+
 .call-card__table {
   font-size: 2rem;
   font-weight: 800;

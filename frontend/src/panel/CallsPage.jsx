@@ -28,7 +28,9 @@ export default function CallsPage() {
   async function close(call, action) {
     try {
       await live.close(call, action)
-      toast(action === 'complete' ? `${tableName(call.table_label)} tamamlandı` : `${tableName(call.table_label)} iptal edildi`)
+      toast(
+        action === 'complete' ? `${tableName(call.table_label)} tamamlandı` : `${tableName(call.table_label)} iptal edildi`,
+      )
     } catch (err) {
       toast(err.message, 'error')
     }
@@ -71,7 +73,11 @@ export default function CallsPage() {
         ) : (
           <ul className="call-board">
             {live.calls.map((call) => (
-              <li key={call.id} className={`call-card${live.newIds.includes(call.id) ? ' is-new' : ''}`}>
+              <li
+                key={call.id}
+                className={`call-card${call.kind === 'bill' ? ' call-card--bill' : ''}${live.newIds.includes(call.id) ? ' is-new' : ''}`}
+              >
+                <p className="call-card__kind">{call.kind === 'bill' ? 'Hesap istiyor' : 'Garson çağırıyor'}</p>
                 <p className="call-card__table">{tableName(call.table_label)}</p>
                 <p className="call-card__time">
                   <time dateTime={call.created_at}>{timeAgo(call.created_at, now)}</time>
@@ -105,6 +111,7 @@ export default function CallsPage() {
             <thead>
               <tr>
                 <th scope="col">Masa</th>
+                <th scope="col">İstek</th>
                 <th scope="col">Çağrı</th>
                 <th scope="col">Yanıt süresi</th>
               </tr>
@@ -113,6 +120,7 @@ export default function CallsPage() {
               {history.map((c) => (
                 <tr key={c.id}>
                   <td>{c.table_label}</td>
+                  <td>{c.kind === 'bill' ? 'Hesap' : 'Garson'}</td>
                   <td>{timeAgo(c.created_at, now)}</td>
                   <td>{Math.max(1, Math.round((new Date(c.completed_at) - new Date(c.created_at)) / 60000))} dk</td>
                 </tr>

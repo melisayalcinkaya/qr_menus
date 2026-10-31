@@ -1,0 +1,342 @@
+/* Bistro tema (2. şablon) */
+
+.theme-bistro {
+  --m-bg: #f4f4f4;
+  --m-surface: #ffffff;
+  --m-ink: #3a1d12;
+  --m-muted: #7d6a63;
+  --m-line: #e3dcd9;
+  --m-accent: #e5322d;
+  --m-accent-strong: #b91c1c;
+  --m-on-accent: #ffffff;
+  --m-accent-soft: #fde8e7;
+  --m-media-bg: #2a2a2a;
+  --m-price: #e5322d;
+  --m-tag-bg: #f2eeec;
+  --m-star: #f0a20b;
+  --m-font: 'Poppins', system-ui, sans-serif;
+  --m-dock-h: 96px;
+}
+
+.b-page {
+  min-height: 100dvh;
+}
+
+.b-header {
+  padding: 28px 22px 18px;
+}
+
+.b-header__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.b-header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.b-header p {
+  color: var(--m-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.b-back {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 6px 16px -10px rgb(0 0 0 / 0.4);
+}
+
+.b-search-row {
+  display: flex;
+  gap: 10px;
+}
+
+/* İnce çerçeveli arama hapı, kırmızı yer tutucu, sağda büyüteç */
+.b-search {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 14px 0 18px;
+  border: 1.5px solid #cfc8c5;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.b-search:focus-within {
+  border-color: var(--m-accent);
+}
+
+.b-search input::placeholder {
+  color: var(--m-accent);
+  opacity: 0.85;
+}
+
+.b-search__btn {
+  flex: none;
+  border: 0;
+  background: none;
+  color: #1c1c1c;
+}
+
+.b-filter {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 46px;
+  height: 46px;
+  padding: 0 10px;
+  border: 1.5px solid #cfc8c5;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--m-ink);
+}
+
+/* --- Kartlar ------------------------------------------------------------- */
+
+.b-body {
+  padding: 4px 16px 0;
+}
+
+.b-section-title {
+  margin: 4px 6px 12px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.b-list {
+  display: grid;
+  gap: 18px;
+  padding: 4px;
+}
+
+.b-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 116px;
+  padding: 12px;
+  border: 0;
+  border-radius: 18px;
+  background: #fff;
+  color: inherit;
+  text-align: left;
+  box-shadow: 0 16px 28px -18px rgb(0 0 0 / 0.35);
+}
+
+.b-row:active {
+  transform: scale(0.99);
+}
+
+.b-row__media {
+  flex: none;
+  width: 42%;
+  max-width: 170px;
+  aspect-ratio: 16 / 10;
+  border-radius: 14px;
+  color: #fff;
+}
+
+.b-row__title {
+  flex: 1;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.b-row--product {
+  align-items: stretch;
+}
+
+.b-row--product .b-row__media {
+  width: 36%;
+  aspect-ratio: 1;
+  align-self: center;
+}
+
+.b-row__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 2px 0;
+}
+
+.b-row__name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.b-row__desc {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--m-muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.b-row__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: auto;
+}
+
+.b-row__price {
+  color: var(--m-accent);
+  font-size: 1.05rem;
+}
+
+/* Sayfalama: her sayfa bir sütun kart; yana kaydırınca sayfa değişir */
+.b-pager {
+  display: grid;
+  grid-auto-columns: 100%;
+  grid-auto-flow: column;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.b-pager::-webkit-scrollbar {
+  display: none;
+}
+
+.b-pager__page {
+  scroll-snap-align: start;
+  align-content: start;
+}
+
+.b-pager__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: 16px 6px 0;
+}
+
+.b-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.b-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #c9c4c2;
+  transition: width 200ms ease;
+}
+
+.b-dots span.is-active {
+  width: 26px;
+  background: var(--m-accent);
+}
+
+.b-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 0;
+  background: none;
+  color: var(--m-accent);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* --- Alt çubuk: kırmızı hap, ortada beyaz ev düğmesi ---------------------- */
+
+.b-dock {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 20;
+  padding: 0 14px calc(14px + env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+
+.b-dock__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(100%, 530px);
+  height: 64px;
+  margin: 0 auto;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--m-accent);
+  box-shadow: 0 14px 30px -14px rgb(229 50 45 / 0.8);
+  pointer-events: auto;
+}
+
+.b-dock__side {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.b-dock__btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  background: none;
+  color: #fff;
+}
+
+.b-dock__side .b-dock__btn + .b-dock__btn::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 12px;
+  bottom: 12px;
+  width: 1.5px;
+  background: rgb(255 255 255 / 0.7);
+}
+
+.b-dock__btn.is-active::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ffd43b;
+}
+
+.b-dock__home {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 48px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--m-accent) !important;
+}
+
+.theme-bistro .call-status {
+  --m-status-bg: #3a1d12;
+}

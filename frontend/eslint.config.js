@@ -18,7 +18,7 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
       'react-refresh/only-export-components': [
         'warn',
-        { allowConstantExport: true, allowExportNames: ['useAuth', 'useToast'] },
+        { allowConstantExport: true, allowExportNames: ['useAuth', 'useToast', 'useMenu', 'THEMES'] },
       ],
     },
   },

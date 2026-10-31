@@ -13,7 +13,7 @@ export default function App() {
       <Suspense fallback={null}>
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/m/:slug" element={<MenuPage />} />
+          <Route path="/m/:slug/*" element={<MenuPage />} />
           <Route path="/panel/*" element={<PanelRoutes />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -1,9 +1,10 @@
-// Menü yazı tipleri yalnızca menü paketiyle yüklenir
-import '@fontsource/young-serif'
-import '@fontsource-variable/bricolage-grotesque/wdth.css'
-import '@fontsource-variable/fraunces/full.css'
-import '@fontsource-variable/fraunces/full-italic.css'
-import '@fontsource-variable/dm-sans'
-import MenuPage from './MenuPage'
+// Menü yazı tipleri yalnızca menü paketiyle yüklenir (panel bunları indirmez)
+import '@fontsource/poppins/400.css'
+import '@fontsource/poppins/500.css'
+import '@fontsource/poppins/600.css'
+import '@fontsource/poppins/700.css'
+import '@fontsource-variable/league-spartan'
+import '@fontsource-variable/montserrat'
+import MenuShell from './MenuShell'
 
-export default MenuPage
+export default MenuShell

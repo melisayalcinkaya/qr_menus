@@ -19,12 +19,13 @@ export function useLiveCalls(slug) {
   const load = useCallback(async () => {
     try {
       const list = await apiList(`/waiter-calls/?business=${slug}&status=pending`)
-      const ids = list.map((c) => c.id)
+      // Anahtar = id + tür: garson çağrısı hesaba yükseltilirse (aynı id) yeni sayılır
+      const keys = list.map((c) => `${c.id}:${c.kind}`)
       if (known.current) {
-        const fresh = ids.filter((id) => !known.current.has(id))
+        const fresh = list.filter((c, i) => !known.current.has(keys[i])).map((c) => c.id)
         if (fresh.length) setNewIds(fresh)
       }
-      known.current = new Set(ids)
+      known.current = new Set(keys)
       setCalls(list)
       setError(null)
     } catch (err) {

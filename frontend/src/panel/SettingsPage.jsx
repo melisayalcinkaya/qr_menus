@@ -5,9 +5,24 @@ import { FieldError, PageHeader } from './ui'
 import { useToast } from './Toast'
 
 const THEMES = [
-  { code: 'klasik', label: 'Klasik', hint: 'İznik mavisi, noktalı fiyat çizgisi', colors: ['#fbfbf8', '#2155a3', '#b63526'] },
-  { code: 'bistro', label: 'Bistro', hint: 'Kara tahta, iri hardal fiyatlar', colors: ['#22282b', '#edeae2', '#e2b33c'] },
-  { code: 'vitrin', label: 'Vitrin', hint: 'Pastane camekânı, görselli kartlar', colors: ['#fff6f1', '#c7325f', '#6f9a4b'] },
+  {
+    code: 'klasik',
+    label: 'Klasik',
+    hint: 'Sarı degrade başlık, iki sütunlu görselli kategori kartları',
+    colors: ['#ffd43b', '#f5f5f5', '#ea5b1d'],
+  },
+  {
+    code: 'bistro',
+    label: 'Bistro',
+    hint: 'Açık gri zemin, yatay kategori kartları, kırmızı alt çubuk',
+    colors: ['#f4f4f4', '#ffffff', '#e5322d'],
+  },
+  {
+    code: 'vitrin',
+    label: 'Vitrin',
+    hint: 'Siyah başlıkta büyük slogan, yana kayan ürün rafları',
+    colors: ['#000000', '#f6e3d3', '#df5f78'],
+  },
 ]
 
 export default function SettingsPage() {
@@ -24,6 +39,7 @@ export default function SettingsPage() {
     const body = new FormData()
     body.append('name', raw.get('name'))
     body.append('theme', theme)
+    for (const key of ['tagline', 'tagline_en', 'about', 'about_en']) body.append(key, raw.get(key) || '')
     body.append('wifi_ssid', raw.get('wifi_ssid'))
     body.append('wifi_password', raw.get('wifi_password'))
     body.append('wifi_enabled', raw.get('wifi_enabled') ? 'true' : 'false')
@@ -99,6 +115,31 @@ export default function SettingsPage() {
                   </span>
                 </label>
               ))}
+            </div>
+          </section>
+
+          <section className="card form">
+            <h2>Başlık metni</h2>
+            <p className="field__hint">
+              Vitrin temasında menünün en üstünde büyük başlık ve kısa tanıtım olarak görünür. Boş bırakılırsa işletme adı kullanılır.
+            </p>
+            <div className="form-grid">
+              <label className="field">
+                <span>Slogan</span>
+                <input name="tagline" maxLength={80} defaultValue={business.tagline} placeholder="Örn. Taze baklava, kaymaklı katmer!" />
+              </label>
+              <label className="field">
+                <span>İngilizce slogan</span>
+                <input name="tagline_en" maxLength={80} defaultValue={business.tagline_en} lang="en" />
+              </label>
+              <label className="field">
+                <span>Kısa tanıtım</span>
+                <textarea name="about" maxLength={220} rows={2} defaultValue={business.about} />
+              </label>
+              <label className="field">
+                <span>İngilizce kısa tanıtım</span>
+                <textarea name="about_en" maxLength={220} rows={2} defaultValue={business.about_en} lang="en" />
+              </label>
             </div>
           </section>
 
