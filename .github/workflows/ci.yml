@@ -70,6 +70,7 @@ jobs:
             -e DJANGO_SECRET_KEY=ci-smoke-test \
             -e DJANGO_ALLOWED_HOSTS=localhost \
             -e SECURE_SSL_REDIRECT=false \
+            -e SERVE_MEDIA=true \
             qr-menu
           for i in $(seq 1 30); do curl -fs http://localhost:8000/api/meta/ >/dev/null && break; sleep 1; done
       - name: Uç noktaları kontrol et
@@ -78,6 +79,8 @@ jobs:
           curl -fs http://localhost:8000/ | grep -q 'id="root"'
           curl -fs http://localhost:8000/m/liman-bistro | grep -q 'id="root"'
           curl -fs http://localhost:8000/api/public/liman-bistro/ | grep -q 'Liman Bistro'
+          # Demo görselleri imaja dahil ve konteynerde sunuluyor
+          curl -fsI http://localhost:8000/media/products/liman-bistro/humus.webp | grep -qi 'image/webp'
           test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/api/waiter-calls/)" = 401
           curl -fsI http://localhost:8000/ | grep -qi 'content-security-policy'
           curl -fsI -H 'X-Forwarded-Proto: https' http://localhost:8000/ | grep -qi 'strict-transport-security'

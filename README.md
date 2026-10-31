@@ -16,7 +16,7 @@ Restoran ve kafeler için QR kodlu dijital menü. Müşteri masadaki kodu okutur
 - İşletme paneli: https://qr-menus.onrender.com/panel
 - API dokümantasyonu: https://qr-menus.onrender.com/api/docs/
 
-Panel için demo hesabı: `demo` / `demo-sifre-2026`. Tüm demo verileri kurgusaldır.
+Panel için demo hesabı: `demo` / `demo-sifre-2026`. Tüm demo verileri kurgusaldır; yemek görselleri yapay zekâ ile üretilmiştir.
 
 ![Aynı menünün üç teması: Klasik, Bistro ve Vitrin](docs/screenshots/menu-temalar.png)
 
@@ -24,7 +24,7 @@ Panel için demo hesabı: `demo` / `demo-sifre-2026`. Tüm demo verileri kurgusa
 
 Basılı menüler güncellenemez, alerjen bilgisi taşımaz ve yabancı misafire hitap etmez. Garsona ulaşmak için el kaldırıp beklemek gerekir. Bu proje:
 
-- Menüyü **masaya özel** bir QR koduyla açar; hangi masadan çağrı geldiği otomatik bilinir.
+- Menüyü **masaya özel** bir QR koduyla açar; garson çağrısında ya da hesap isteğinde hangi masa olduğu otomatik bilinir.
 - Ürünü panelden pasifleştirmek onu **anında** menüden kaldırır; yeniden basım gerekmez.
 - 14 yasal alerjen grubunu standart kodlarla tutar ve müşterinin menüyü **süzmesini** sağlar.
 - İşletmeye ziyaret, yoğun saat ve garson yanıt süresi gibi **ölçülebilir** veriler verir.
@@ -32,17 +32,18 @@ Basılı menüler güncellenemez, alerjen bilgisi taşımaz ve yabancı misafire
 ## Özellikler
 
 **Müşteri menüsü** (uygulama indirmeden, telefon tarayıcısında)
-- Üç tema, tek kod: Klasik (İznik çinisi), Bistro (kara tahta), Vitrin (pastane camekânı); açık/koyu mod
+- Üç tema, tek davranış: **Klasik** (sarı degrade başlık, iki sütunlu görselli kategori kartları), **Bistro** (yatay kategori kartları, sayfalama, kırmızı alt çubuk), **Vitrin** (siyah başlıkta slogan, yana kayan ürün rafları). Temalar yalnızca görünümü değiştirir; veri, süzgeç ve çağrı mantığı ortaktır
+- Kategoriden ürünlere, üründen ayrıntıya (içindekiler, alerjenler, hazırlık süresi) giden sade gezinme; masa bağlantısı sayfalar arasında korunur
 - Türkçe ve İngilizce; telefonun diline göre açılır, İngilizce alan boşsa Türkçeye düşer
 - Türkçe harflere duyarsız arama ("manti" → Mantı), alerjen ve vegan/vejetaryen/acılı süzgeci
-- Masa QR'ıyla açıldığında garson çağırma ve çağrının canlı durumu
+- Masa QR'ıyla açıldığında **garson çağırma** ve **hesap isteme**, isteğin canlı durumu
 - Wi-Fi bilgisi (kopyala düğmesiyle) ve işletme onayından geçen yorumlar
 
 **İşletme paneli**
-- Canlı garson çağrısı panosu: 5 saniyede bir yenilenir, isteğe bağlı zil sesi, sekme başlığında bekleyen sayısı
+- Canlı çağrı panosu: 5 saniyede bir yenilenir, hesap istekleri ayrı renkte, isteğe bağlı zil sesi, sekme başlığında bekleyen sayısı
 - Menü düzenleyici: kategoriler (ikonlu), ürünler, iki dilde içerik, alerjenler, görsel, sıralama, tek tıkla gizleme
 - Masalar: tekli/toplu ekleme, QR önizleme ve indirme, sızan bir QR'ı geçersiz kılmak için yeni kod üretme, **tüm masa kartları tek PDF**
-- Yorum moderasyonu, kaydetmeden önce canlı tema önizlemesi
+- Yorum moderasyonu, slogan ve kısa tanıtım (TR/EN), kaydetmeden önce canlı tema önizlemesi
 - İstatistikler: günlük ziyaret, saatlere göre çağrı, ortalama yanıt süresi, puan dağılımı
 
 **Masaüstü çağrı ekranı** ([qr-menu-desktop](https://github.com/melisayalcinkaya/qr-menu-desktop))
@@ -51,12 +52,12 @@ Basılı menüler güncellenemez, alerjen bilgisi taşımaz ve yabancı misafire
 
 **Geliştirici tarafı**
 - OpenAPI şeması ve Swagger arayüzü: `/api/docs/`
-- 66 backend + 16 frontend testi, %90 kapsam alt sınırı, uçtan uca duman testi yapan CI
+- 70 backend + 24 frontend testi (üç tema da sahte API ile uçtan uca çiziliyor), %90 kapsam alt sınırı, Docker imajını açıp deneyen CI
 - Tek Docker imajı; Render'a tek tıkla kurulum (`render.yaml`)
 
-| Masa QR'ıyla menü: süzgeç ve garson çağırma | Basılabilir masa kartları (PDF) |
+| Kategori, ürün ayrıntısı ve hesap isteme | Basılabilir masa kartları (PDF) |
 |---|---|
-| ![Süzgeç ve garson çağırma](docs/screenshots/menu-suzgec-ve-cagri.png) | ![Masa kartları](docs/screenshots/masa-kartlari.png) |
+| ![Kategori sayfası, ürün ayrıntısı ve hesap isteme](docs/screenshots/menu-ayrinti-ve-cagri.png) | ![Masa kartları](docs/screenshots/masa-kartlari.png) |
 
 ![Panelde genel bakış](docs/screenshots/panel-genel-bakis.png)
 
@@ -113,7 +114,7 @@ Projenin ilk sürümünde bulunan açıklar düzeltildi ve her biri için regres
 
 Diğer önlemler:
 - Masa belirteçleri tahmin edilemez; başka işletmenin belirteci geçmez.
-- Aynı masadan tekrar basılan "Garson çağır" yeni çağrı açmaz (idempotent, `select_for_update`).
+- Aynı masadan tekrar basılan "Garson çağır" yeni çağrı açmaz (idempotent, `select_for_update`); açık çağrı varken hesap istenirse çağrı "hesap"a yükseltilir, panoda aynı masa için iki kart oluşmaz.
 - Yorumlar onaylanmadan yayımlanmaz ve işletme sahibi yorum metnini değiştiremez.
 - Konteyner root olmayan bir kullanıcıyla çalışır.
 
@@ -140,7 +141,7 @@ npm install
 npm run dev                     # http://localhost:5173 (/api istekleri Django'ya yönlendirilir)
 ```
 
-Demo menüler: `/m/cinaralti-lokantasi`, `/m/liman-bistro`, `/m/fistik-pastanesi`. Garson çağırmayı denemek için sonuna `?masa=demo-klasik-4` (ya da `demo-bistro-4`, `demo-vitrin-4`) ekleyin.
+Demo menüler: `/m/cinaralti-lokantasi`, `/m/liman-bistro`, `/m/fistik-pastanesi`. Garson çağırmayı ve hesap istemeyi denemek için sonuna `?masa=demo-klasik-4` (ya da `demo-bistro-4`, `demo-vitrin-4`) ekleyin.
 
 ### Docker
 
@@ -157,8 +158,8 @@ Depodaki `render.yaml` bir Blueprint tanımıdır: Render panelinde **New → Bl
 ## Testler
 
 ```bash
-cd backend && python manage.py test api        # 66 test
-cd frontend && npm test                        # 16 test
+cd backend && python manage.py test api        # 70 test
+cd frontend && npm test                        # 24 test
 ```
 
 CI her push'ta şunları çalıştırır: Ruff, eksik migration kontrolü, testler (kapsam %90 altına düşerse başarısız), demo verisi yükleme, ESLint, Vitest, Vite derlemesi. Son olarak Docker imajını production ayarlarıyla başlatıp sayfaların, kimlik doğrulamanın ve güvenlik başlıklarının çalıştığını kontrol eder.
@@ -191,7 +192,7 @@ frontend/src/
 
 ## English summary
 
-QR Menu is a digital restaurant menu opened from a per-table QR code (a desktop call screen for the till lives in [qr-menu-desktop](https://github.com/melisayalcinkaya/qr-menu-desktop)). Guests read the menu in Turkish or English, filter it by the 14 legally required allergen groups, and call a waiter with one tap; the owner sees calls live on a dashboard with an optional chime. Owners manage categories, products, tables (with printable PDF table cards), reviews and a theme with live preview, and get statistics such as average waiter response time.
+QR Menu is a digital restaurant menu opened from a per-table QR code (a desktop call screen for the till lives in [qr-menu-desktop](https://github.com/melisayalcinkaya/qr-menu-desktop)). Guests read the menu in Turkish or English, filter it by the 14 legally required allergen groups, and call a waiter or ask for the bill with one tap; the owner sees calls live on a dashboard with an optional chime. Owners manage categories, products, tables (with printable PDF table cards), reviews and a theme with live preview, and get statistics such as average waiter response time.
 
 Built with Django REST Framework and React. The first version had several access-control flaws (anonymous access to waiter calls, cross-tenant product moves, leaked reviewer e-mails, tokens in localStorage); all are fixed and covered by regression tests. Other highlights: OpenAPI docs, CSP and security headers, HttpOnly refresh-token rotation, a single Docker image, and CI that boots the image and smoke-tests it.
 
