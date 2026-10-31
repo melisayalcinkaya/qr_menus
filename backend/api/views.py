@@ -300,15 +300,24 @@ class PublicWaiterCallView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         table = serializer.validated_data["table"]
         with transaction.atomic():
+            kind = serializer.validated_data.get("kind", "waiter")
+            note = serializer.validated_data.get("note", "")
             open_call = table.calls.select_for_update().filter(status="pending").first()
             if open_call:
-                # Tekrar basılan düğme yeni çağrı oluşturmaz; mevcut çağrı döner (idempotent)
+                # Tekrar basılan düğme yeni çağrı oluşturmaz; mevcut çağrı döner (idempotent).
+                # Açık garson çağrısı varken hesap istenirse çağrı "hesap"a yükseltilir:
+                # garson masaya bir kez gelir, panoda aynı masa için iki kart olmaz.
+                if kind == "bill" and open_call.kind != "bill":
+                    open_call.kind = "bill"
+                    open_call.note = note or open_call.note
+                    open_call.save(update_fields=["kind", "note"])
                 return Response(self.get_serializer(open_call).data, status=status.HTTP_200_OK)
             call = WaiterCall.objects.create(
                 business=table.business,
                 table=table,
                 table_label=table.label,
-                note=serializer.validated_data.get("note", ""),
+                kind=kind,
+                note=note,
             )
         return Response(self.get_serializer(call).data, status=status.HTTP_201_CREATED)
 

@@ -87,3 +87,34 @@ class CustomerCallTests(TwoOwnersTestCase):
         call = WaiterCall.objects.get()
         self.assertIsNone(call.table)
         self.assertEqual(call.table_label, "12")
+
+
+class BillRequestTests(TwoOwnersTestCase):
+    def setUp(self):
+        super().setUp()
+        self.table = Table.objects.create(business=self.cafe, label="8")
+        self.url = f"/api/public/{self.cafe.slug}/waiter-calls/"
+
+    def test_bill_request_is_a_call_of_kind_bill(self):
+        r = self.client.post(self.url, {"table": self.table.token, "kind": "bill"})
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(r.json()["kind"], "bill")
+        self.login(self.ayse)
+        listed = self.client.get("/api/waiter-calls/?status=pending").json()["results"]
+        self.assertEqual(listed[0]["kind"], "bill")
+
+    def test_bill_upgrades_open_waiter_call_instead_of_duplicating(self):
+        first = self.client.post(self.url, {"table": self.table.token, "note": "Su"}).json()
+        second = self.client.post(self.url, {"table": self.table.token, "kind": "bill"})
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(second.json()["id"], first["id"])
+        self.assertEqual(second.json()["kind"], "bill")
+        self.assertEqual(second.json()["note"], "Su")  # not boşsa eski not korunur
+        # Hesap açıkken garson çağırmak hesabı geri düşürmez
+        third = self.client.post(self.url, {"table": self.table.token, "kind": "waiter"})
+        self.assertEqual(third.json()["kind"], "bill")
+        self.assertEqual(WaiterCall.objects.count(), 1)
+
+    def test_unknown_kind_rejected(self):
+        r = self.client.post(self.url, {"table": self.table.token, "kind": "siparis"})
+        self.assertEqual(r.status_code, 400)

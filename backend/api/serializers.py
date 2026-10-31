@@ -123,6 +123,10 @@ class BusinessSerializer(serializers.ModelSerializer):
             "slug",
             "logo",
             "theme",
+            "tagline",
+            "tagline_en",
+            "about",
+            "about_en",
             "wifi_ssid",
             "wifi_password",
             "wifi_enabled",
@@ -304,6 +308,7 @@ class WaiterCallSerializer(serializers.ModelSerializer):
             "business",
             "table",
             "table_label",
+            "kind",
             "note",
             "status",
             "created_at",
@@ -367,7 +372,19 @@ class PublicMenuSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Business
-        fields = ["name", "slug", "logo", "theme", "wifi", "table", "categories"]
+        fields = [
+            "name",
+            "slug",
+            "logo",
+            "theme",
+            "tagline",
+            "tagline_en",
+            "about",
+            "about_en",
+            "wifi",
+            "table",
+            "categories",
+        ]
 
     @extend_schema_field(PublicTableSerializer(allow_null=True))
     def get_table(self, obj):
@@ -405,7 +422,16 @@ class PublicWaiterCallSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WaiterCall
-        fields = ["id", "table", "table_label", "note", "status", "created_at", "completed_at"]
+        fields = [
+            "id",
+            "table",
+            "table_label",
+            "kind",
+            "note",
+            "status",
+            "created_at",
+            "completed_at",
+        ]
         read_only_fields = ["id", "table_label", "status", "created_at", "completed_at"]
 
     def validate_table(self, token):

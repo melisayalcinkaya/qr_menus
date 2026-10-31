@@ -50,6 +50,11 @@ class Business(models.Model):
         upload_to=logo_upload_path, null=True, blank=True, validators=[validate_image_file]
     )
     theme = models.CharField(max_length=20, choices=THEME_CHOICES, default="klasik")
+    # Vitrin temasının büyük başlığı ve kısa tanıtım metni (isteğe bağlı)
+    tagline = models.CharField("Slogan", max_length=80, blank=True)
+    tagline_en = models.CharField("İngilizce slogan", max_length=80, blank=True)
+    about = models.CharField("Kısa tanıtım", max_length=220, blank=True)
+    about_en = models.CharField("İngilizce kısa tanıtım", max_length=220, blank=True)
 
     # Müşterinin menüde göreceği Wi-Fi bilgisi (isteğe bağlı)
     wifi_ssid = models.CharField(max_length=64, blank=True)
@@ -223,6 +228,10 @@ class Table(models.Model):
 
 
 class WaiterCall(models.Model):
+    KIND_CHOICES = [
+        ("waiter", "Garson"),
+        ("bill", "Hesap"),
+    ]
     STATUS_CHOICES = [
         ("pending", "Bekliyor"),
         ("completed", "Tamamlandı"),
@@ -235,6 +244,7 @@ class WaiterCall(models.Model):
     )
     # Masa silinse bile geçmiş kayıtta hangi masa olduğu görünsün diye etiket kopyalanır
     table_label = models.CharField(max_length=20)
+    kind = models.CharField(max_length=10, choices=KIND_CHOICES, default="waiter")
     note = models.CharField(max_length=200, blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
