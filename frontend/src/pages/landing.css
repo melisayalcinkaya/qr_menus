@@ -5,6 +5,7 @@
   --l-line: #dfe3e5;
   --l-primary: #0f6e6e;
   --l-amber: #f2b552;
+  --l-surface: #ffffff;
   min-height: 100vh;
   background: var(--l-bg);
   color: var(--l-ink);
@@ -17,6 +18,7 @@
     --l-muted: #a2abb4;
     --l-line: #2c3236;
     --l-primary: #3fb5ae;
+    --l-surface: #1b1f22;
   }
 }
 
@@ -128,8 +130,13 @@
   font-size: 0.95rem;
 }
 
+.hero__preview {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+}
+
 .hero__phone {
-  justify-self: center;
   width: 340px;
   max-width: 100%;
   height: 640px;
@@ -147,69 +154,106 @@
   background: #fff;
 }
 
+/* Telefonun altındaki küçük tema seçici */
+.theme-switch {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--l-line);
+  border-radius: 999px;
+  background: var(--l-surface, #fff);
+}
+
+.theme-switch__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--l-ink);
+  font-weight: 700;
+}
+
+.theme-switch__option[aria-checked='true'] {
+  background: var(--l-ink);
+  color: var(--l-bg);
+}
+
+.theme-switch__caption {
+  max-width: 34ch;
+  color: var(--l-muted);
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.swatch {
+  display: inline-flex;
+  overflow: hidden;
+  width: 30px;
+  height: 18px;
+  border: 1px solid rgb(0 0 0 / 0.12);
+  border-radius: 6px;
+}
+
+.swatch span {
+  flex: 1;
+}
+
+.hero__demo-links {
+  display: none;
+}
+
 @media (max-width: 899px) {
-  .hero__phone {
+  .hero__preview {
     display: none;
+  }
+
+  .hero__demo-links {
+    display: grid;
+    gap: 8px;
+    margin-top: 24px;
+  }
+
+  .hero__demo-links a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--l-line);
+    border-radius: 14px;
+    text-decoration: none;
+  }
+
+  .hero__demo-links span:last-child {
+    display: grid;
+  }
+
+  .hero__demo-links small {
+    color: var(--l-muted);
   }
 }
 
-.demos,
 .features {
   padding: 40px 0;
   border-top: 1px solid var(--l-line);
 }
 
-.demos h2,
 .features h2 {
   margin-bottom: 20px;
   font-size: 1.6rem;
   letter-spacing: -0.01em;
 }
 
-.demos ul {
-  display: grid;
-  gap: 14px;
-}
 
-@media (min-width: 760px) {
-  .demos ul {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
 
-.demo {
-  display: grid;
-  gap: 6px;
-  padding: 14px;
-  border: 1px solid var(--l-line);
-  border-radius: 16px;
-  text-decoration: none;
-}
 
-.demo:hover {
-  border-color: var(--l-primary);
-}
 
-.demo span:last-child {
-  color: var(--l-muted);
-  font-size: 0.93rem;
-}
 
-.demo__swatch {
-  display: flex;
-  height: 64px;
-  margin-bottom: 6px;
-  border-radius: 10px;
-  overflow: hidden;
-}
 
-.demo__swatch span {
-  flex: 1;
-}
 
-.demo__swatch span:first-child {
-  flex: 3;
-}
 
 .features ul {
   display: grid;

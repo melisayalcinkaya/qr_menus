@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BellRing, BookOpen, ChartColumn, Languages, QrCode, SlidersHorizontal } from 'lucide-react'
 import './landing.css'
@@ -7,21 +8,24 @@ const DEMOS = [
     theme: 'klasik',
     name: 'Çınaraltı Lokantası',
     slug: 'cinaralti-lokantasi',
-    look: 'Klasik tema: sarı degrade başlık, görselli kategori kartları',
+    label: 'Klasik',
+    look: 'Sarı degrade başlık, görselli kategori kartları',
     colors: ['#ffd43b', '#f5f5f5', '#ea5b1d'],
   },
   {
     theme: 'bistro',
     name: 'Liman Bistro',
     slug: 'liman-bistro',
-    look: 'Bistro tema: yatay kategori kartları, kırmızı alt çubuk',
+    label: 'Bistro',
+    look: 'Yatay kategori kartları, kırmızı alt çubuk',
     colors: ['#f4f4f4', '#ffffff', '#e5322d'],
   },
   {
     theme: 'vitrin',
     name: 'Fıstık Pastanesi',
     slug: 'fistik-pastanesi',
-    look: 'Vitrin tema: siyah başlık, yana kayan ürün rafları',
+    label: 'Vitrin',
+    look: 'Siyah başlıkta slogan, yana kayan ürün rafları',
     colors: ['#000000', '#f6e3d3', '#df5f78'],
   },
 ]
@@ -35,7 +39,10 @@ const FEATURES = [
   { icon: ChartColumn, title: 'İstatistikler', text: 'Menü ziyaretleri, yoğun saatler, garsonun ortalama yanıt süresi ve puanlar.' },
 ]
 
+const menuUrl = (d) => `/m/${d.slug}?masa=demo-${d.theme}-4`
+
 export default function Landing() {
+  const [selected, setSelected] = useState(DEMOS[0])
   return (
     <div className="landing">
       <header className="landing__top">
@@ -50,13 +57,13 @@ export default function Landing() {
       <main>
         <section className="hero">
           <div className="hero__text">
-            <h1>Masadaki QR kodla menü, alerjen bilgisi ve garson çağırma.</h1>
+            <h1>Masadaki QR kodla menü, alerjen bilgisi, garson ve hesap.</h1>
             <p>
               Restoran ve kafeler için açık kaynak dijital menü. Müşteri uygulama indirmez; işletme menüsünü, masalarını ve
               çağrıları tek panelden yönetir.
             </p>
             <div className="hero__actions">
-              <a className="landing__cta" href="/m/cinaralti-lokantasi?masa=demo-klasik-4">
+              <a className="landing__cta" href={menuUrl(selected)}>
                 Masa 4’ten menüyü aç
               </a>
               <Link className="landing__secondary" to="/panel/giris">
@@ -64,32 +71,54 @@ export default function Landing() {
               </Link>
             </div>
             <p className="hero__hint">
-              Panel için demo hesabı: <strong>demo</strong> / <strong>demo-sifre-2026</strong>. Menüden garson çağırın,
-              panelde “Garson çağrıları” sayfasında görün.
+              Panel için demo hesabı: <strong>demo</strong> / <strong>demo-sifre-2026</strong>. Menüden garson çağırın
+              ya da hesap isteyin, panelde “Garson çağrıları” sayfasında görün.
+            </p>
+            {/* Telefonda önizleme gösterilmez; temalar doğrudan menüyü açan bağlantılar olur */}
+            <ul className="hero__demo-links" aria-label="Demo menüler">
+              {DEMOS.map((d) => (
+                <li key={d.slug}>
+                  <a href={menuUrl(d)}>
+                    <Swatch colors={d.colors} />
+                    <span>
+                      <strong>{d.name}</strong>
+                      <small>{d.label} tema</small>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="hero__preview">
+            <div className="hero__phone">
+              <iframe
+                key={selected.slug}
+                src={`/m/${selected.slug}?preview=1`}
+                title={`${selected.name} menü önizlemesi`}
+                tabIndex={-1}
+                loading="lazy"
+              />
+            </div>
+            <div className="theme-switch" role="radiogroup" aria-label="Menü teması">
+              {DEMOS.map((d) => (
+                <button
+                  key={d.slug}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected.slug === d.slug}
+                  className="theme-switch__option"
+                  onClick={() => setSelected(d)}
+                  title={d.look}
+                >
+                  <Swatch colors={d.colors} />
+                  {d.label}
+                </button>
+              ))}
+            </div>
+            <p className="theme-switch__caption">
+              {selected.name}: {selected.look.toLocaleLowerCase('tr')}
             </p>
           </div>
-          <div className="hero__phone" aria-hidden="true">
-            <iframe src="/m/cinaralti-lokantasi?preview=1" title="Örnek menü" tabIndex={-1} loading="lazy" />
-          </div>
-        </section>
-
-        <section className="demos" aria-labelledby="demos-title">
-          <h2 id="demos-title">Aynı menü, üç tema</h2>
-          <ul>
-            {DEMOS.map((d) => (
-              <li key={d.slug}>
-                <a href={`/m/${d.slug}?masa=demo-${d.theme}-4`} className="demo">
-                  <span className="demo__swatch" aria-hidden="true">
-                    {d.colors.map((c) => (
-                      <span key={c} style={{ background: c }} />
-                    ))}
-                  </span>
-                  <strong>{d.name}</strong>
-                  <span>{d.look}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
         </section>
 
         <section className="features" aria-labelledby="features-title">
@@ -115,5 +144,15 @@ export default function Landing() {
         <p>Demo verileri kurgusaldır.</p>
       </footer>
     </div>
+  )
+}
+
+function Swatch({ colors }) {
+  return (
+    <span className="swatch" aria-hidden="true">
+      {colors.map((c) => (
+        <span key={c} style={{ background: c }} />
+      ))}
+    </span>
   )
 }
