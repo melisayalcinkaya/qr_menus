@@ -78,8 +78,14 @@ function ToolsRow() {
         {filterCount > 0 && <span className="m-filter-badge">{filterCount}</span>}
       </button>
       <MapPin size={30} aria-hidden="true" className="v-tools__pin" />
-      <button type="button" className="v-tools__pill" onClick={() => openSheet('call', { kind: 'waiter' })} aria-haspopup="dialog">
-        <span>{data.table ? `${t.table(data.table.label)} · ${t.callWaiter}` : t.callWaiter}</span>
+      <button
+        type="button"
+        className="v-tools__pill"
+        onClick={() => openSheet('call', { kind: 'waiter' })}
+        aria-haspopup="dialog"
+        aria-label={data.table ? `${t.table(data.table.label)}: ${t.callOrBill}` : t.callOrBill}
+      >
+        <span>{data.table ? `${t.table(data.table.label)} · ${t.callShort}` : t.callOrBill}</span>
         <ChevronDown size={20} aria-hidden="true" />
       </button>
       <div className="v-search m-search">
@@ -248,8 +254,7 @@ function Dock() {
     { key: 'reviews', label: t.reviews, Icon: MessageSquareMore, onClick: () => openSheet('reviews') },
     {
       key: 'call',
-      label: `${t.callWaiter} / ${t.requestBill}`,
-      short: t.callWaiter,
+      label: t.callOrBill,
       Icon: Hand,
       onClick: () => openSheet('call', { kind: 'waiter' }),
       active: call.pending,

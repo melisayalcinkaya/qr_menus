@@ -18,14 +18,20 @@
   --m-dock-h: 92px;
 }
 
+/* Sarı degrade sayfanın tamamına yayılır (geniş ekranda sütunun dışında kesilmesin).
+   .menu.theme-klasik: ortak .menu arka planından sonra yüklenmese de onu ezsin. */
+.menu.theme-klasik {
+  background:
+    linear-gradient(180deg, #ffd43b 0, #ffe680 70px, #fff6d6 130px, var(--m-bg) 190px) no-repeat,
+    var(--m-bg);
+}
+
 .k-page {
   min-height: 100dvh;
 }
 
-/* Sarı degrade başlık: üstte koyu sarı, aşağı doğru sayfa rengine erir */
 .k-hero {
   padding: 20px 20px 34px;
-  background: linear-gradient(180deg, #ffd43b 0%, #ffe680 38%, #fff6d6 72%, var(--m-bg) 100%);
 }
 
 .k-hero__top {
@@ -256,6 +262,12 @@
 .k-dock__btn:hover,
 .k-dock__btn.is-active {
   color: var(--m-accent);
+}
+
+.k-dock__badge {
+  position: absolute;
+  top: 0;
+  right: calc(50% - 22px);
 }
 
 .theme-klasik .call-status {

@@ -3,14 +3,14 @@
  * iki sütunlu kategori kartları; altta turuncu "Menü" hapı ve gri ikon grubu.
  */
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Globe, Hand, HandCoins, House, MessageSquareMore, Search, SlidersHorizontal, Wifi, X } from 'lucide-react'
+import { ArrowLeft, Globe, Hand, House, MessageSquareMore, Search, SlidersHorizontal, Wifi, X } from 'lucide-react'
 import { useMenu } from '../MenuContext'
 import { CallStatus, Media, Price, Tags } from '../shared'
 import { useCurrentCategory, useLanguageToggle, useOpenProduct, useSearchResults } from '../hooks'
 import './klasik.css'
 
 function SearchBar() {
-  const { query, setQuery, t, filterCount, openSheet } = useMenu()
+  const { query, setQuery, t } = useMenu()
   return (
     <div className="k-search m-search">
       <span className="k-search__icon" aria-hidden="true">
@@ -27,20 +27,9 @@ function SearchBar() {
         placeholder={t.searchPlaceholder}
         enterKeyHint="search"
       />
-      {query ? (
+      {query && (
         <button type="button" className="k-icon-btn" onClick={() => setQuery('')} aria-label={t.close}>
           <X size={18} />
-        </button>
-      ) : (
-        <button
-          type="button"
-          className="k-icon-btn"
-          onClick={() => openSheet('filters')}
-          aria-label={t.filtersTitle}
-          aria-haspopup="dialog"
-        >
-          <SlidersHorizontal size={18} />
-          {filterCount > 0 && <span className="m-filter-badge">{filterCount}</span>}
         </button>
       )}
     </div>
@@ -176,24 +165,28 @@ export function CategoryPage() {
   )
 }
 
+/*
+ * Şablondaki dört ikon: yorumlar, (para simgesi yerine) alerjen süzgeci, Wi-Fi ve
+ * garson/hesap. Garson çağırma ile hesap isteme aynı panelden seçildiği için tek düğme.
+ */
 function Dock() {
-  const { t, link, openSheet, data, call } = useMenu()
+  const { t, link, openSheet, data, call, filterCount } = useMenu()
   const items = [
     { key: 'reviews', label: t.reviews, Icon: MessageSquareMore, onClick: () => openSheet('reviews') },
     {
-      key: 'bill',
-      label: t.requestBill,
-      Icon: HandCoins,
-      onClick: () => openSheet('call', { kind: 'bill' }),
-      active: call.pending && call.current.kind === 'bill',
+      key: 'filters',
+      label: t.filtersTitle,
+      Icon: SlidersHorizontal,
+      onClick: () => openSheet('filters'),
+      badge: filterCount,
     },
     data.wifi && { key: 'wifi', label: t.wifi, Icon: Wifi, onClick: () => openSheet('wifi') },
     {
-      key: 'waiter',
-      label: t.callWaiter,
+      key: 'call',
+      label: t.callOrBill,
       Icon: Hand,
       onClick: () => openSheet('call', { kind: 'waiter' }),
-      active: call.pending && call.current.kind === 'waiter',
+      active: call.pending,
     },
   ].filter(Boolean)
   return (
@@ -204,7 +197,7 @@ function Dock() {
           {t.home}
         </Link>
         <div className="k-dock__group">
-          {items.map(({ key, label, Icon, onClick, active }) => (
+          {items.map(({ key, label, Icon, onClick, active, badge }) => (
             <button
               key={key}
               type="button"
@@ -215,6 +208,7 @@ function Dock() {
               aria-haspopup="dialog"
             >
               <Icon size={24} aria-hidden="true" />
+              {badge > 0 && <span className="m-filter-badge k-dock__badge">{badge}</span>}
             </button>
           ))}
         </div>

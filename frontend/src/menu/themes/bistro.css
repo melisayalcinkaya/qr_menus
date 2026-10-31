@@ -154,7 +154,9 @@
 
 .b-row__title {
   flex: 1;
-  font-size: 1.35rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.05rem, 5.2vw, 1.35rem);
   font-weight: 700;
   line-height: 1.2;
   text-align: center;
@@ -299,20 +301,20 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: 46px;
+  width: 44px;
   height: 46px;
   border: 0;
   background: none;
   color: #fff;
 }
 
-.b-dock__side .b-dock__btn + .b-dock__btn::before {
-  content: '';
-  position: absolute;
-  left: -8px;
-  top: 12px;
-  bottom: 12px;
+.b-dock__side {
+  gap: 0;
+}
+
+.b-dock__divider {
   width: 1.5px;
+  height: 22px;
   background: rgb(255 255 255 / 0.7);
 }
 
@@ -330,7 +332,8 @@
 .b-dock__home {
   display: grid;
   place-items: center;
-  width: 84px;
+  flex: none;
+  width: clamp(64px, 20vw, 84px);
   height: 48px;
   border-radius: 999px;
   background: #fff;

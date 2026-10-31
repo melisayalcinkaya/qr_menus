@@ -236,12 +236,13 @@ function Dock() {
           <button type="button" className="b-dock__btn" onClick={() => openSheet('reviews')} aria-label={t.reviews} title={t.reviews} aria-haspopup="dialog">
             <MessageSquareMore size={24} aria-hidden="true" />
           </button>
+          <span className="b-dock__divider" aria-hidden="true" />
           <button
             type="button"
             className={`b-dock__btn${call.pending ? ' is-active' : ''}`}
             onClick={() => openSheet('call', { kind: 'waiter' })}
-            aria-label={`${t.callWaiter} / ${t.requestBill}`}
-            title={`${t.callWaiter} / ${t.requestBill}`}
+            aria-label={t.callOrBill}
+            title={t.callOrBill}
             aria-haspopup="dialog"
           >
             <Hand size={24} aria-hidden="true" />
@@ -258,6 +259,7 @@ function Dock() {
           ) : (
             <span className="b-dock__btn" />
           )}
+          <span className="b-dock__divider" aria-hidden="true" />
           <button type="button" className="b-dock__btn" {...language}>
             <Globe size={24} aria-hidden="true" />
           </button>

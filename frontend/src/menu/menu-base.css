@@ -119,12 +119,20 @@
 
 .m-search input {
   min-width: 0;
+  text-overflow: ellipsis;
   flex: 1;
   border: 0;
   outline: 0;
   background: transparent;
   font: inherit;
   color: var(--m-ink);
+}
+
+/* Dar telefonlarda arama metni kesilmesin */
+@media (max-width: 360px) {
+  .m-search input {
+    font-size: 0.85rem;
+  }
 }
 
 .m-search input::-webkit-search-cancel-button {
