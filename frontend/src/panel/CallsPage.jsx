@@ -67,7 +67,7 @@ export default function CallsPage() {
           <div className="empty">
             <p>Şu an bekleyen çağrı yok.</p>
             <p className="muted">
-              Müşteri masadaki QR koddan “Garson çağır”a bastığında burada görünür; bu sayfa 5 saniyede bir yenilenir.
+              Müşteri masadaki QR koddan garson çağırdığında ya da hesap istediğinde burada görünür; bu sayfa 5 saniyede bir yenilenir.
             </p>
           </div>
         ) : (

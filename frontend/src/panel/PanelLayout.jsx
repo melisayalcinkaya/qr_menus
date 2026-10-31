@@ -98,6 +98,30 @@ export default function PanelLayout() {
         </div>
       </aside>
 
+      {/* Telefonda kenar menüsü alt sekme çubuğuna dönüşür; işletme, menü ve çıkış burada kalır */}
+      <header className="shell__mobilebar">
+        {businesses.data?.length > 1 ? (
+          <label className="business-switch">
+            <span className="visually-hidden">İşletme seçin</span>
+            <select value={slug} onChange={(e) => navigate(`/panel/${e.target.value}`)}>
+              {businesses.data.map((b) => (
+                <option key={b.slug} value={b.slug}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <strong>{business.data?.name || '…'}</strong>
+        )}
+        <a className="icon-button" href={`/m/${slug}`} target="_blank" rel="noreferrer" aria-label="Menüyü aç" title="Menüyü aç">
+          <ExternalLink size={19} />
+        </a>
+        <button type="button" className="icon-button" onClick={logout} aria-label={`Çıkış (${user?.username})`} title="Çıkış">
+          <LogOut size={19} />
+        </button>
+      </header>
+
       <main className="shell__main" id="icerik">
         <LoadState state={business}>
           <Outlet

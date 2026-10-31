@@ -93,7 +93,7 @@ export default function TablesPage() {
       </PageHeader>
 
       <p className="lead">
-        Her masanın QR kodu menüyü o masaya özel açar; müşteri “Garson çağır”a bastığında hangi masadan geldiğini görürsünüz.
+        Her masanın QR kodu menüyü o masaya özel açar; garson çağrısı ya da hesap isteği geldiğinde hangi masadan olduğunu görürsünüz.
       </p>
 
       <div className="table-forms card">

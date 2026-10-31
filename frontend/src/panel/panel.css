@@ -626,6 +626,37 @@
 
 }
 
+.shell__mobilebar {
+  display: none;
+}
+
+@media (max-width: 899px) {
+  .shell__mobilebar {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 8px 8px 16px;
+    border-bottom: 1px solid var(--p-line);
+    background: var(--p-surface);
+  }
+
+  .shell__mobilebar > :first-child {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .shell__mobilebar .icon-button {
+    color: var(--p-ink);
+  }
+
+}
+
 .shell__main {
   min-width: 0;
   padding: 24px clamp(16px, 4vw, 40px) 48px;
@@ -1301,4 +1332,25 @@
 .toast--error {
   background: var(--p-danger);
   color: #fff;
+}
+
+/* Telefon düzeltmeleri: temel kuralları ezebilmesi için dosyanın sonunda */
+@media (max-width: 899px) {
+  .qr-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .qr-card img,
+  .qr-card__ph {
+    width: 100%;
+    max-width: 160px;
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .inline-form .field--short {
+    flex: 1 1 110px;
+    max-width: none;
+  }
 }
