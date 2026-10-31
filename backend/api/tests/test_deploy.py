@@ -36,3 +36,21 @@ class SpaAndHeadersTests(TestCase):
         self.assertEqual(r["X-Content-Type-Options"], "nosniff")
         # Swagger UI CDN'den yüklendiği için CSP'den muaf
         self.assertNotIn("Content-Security-Policy", self.client.get("/api/docs/"))
+
+
+class MediaTypeTests(TestCase):
+    def test_webp_is_registered_even_without_system_mime_files(self):
+        # Slim Docker imajında /etc/mime.types yok; tür ayarlarda kayıtlı olmalı
+        import mimetypes
+
+        self.assertEqual(mimetypes.guess_type("humus.webp")[0], "image/webp")
+
+    def test_media_served_with_image_type(self):
+        from django.test import RequestFactory
+        from django.views.static import serve
+
+        with tempfile.TemporaryDirectory() as root:
+            Path(root, "a.webp").write_bytes(b"RIFF....WEBP")
+            response = serve(RequestFactory().get("/media/a.webp"), "a.webp", document_root=root)
+            self.assertEqual(response["Content-Type"], "image/webp")
+            response.close()

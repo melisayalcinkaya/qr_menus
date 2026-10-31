@@ -5,6 +5,7 @@ Gizli ya da ortama göre değişen her değer ortam değişkenlerinden okunur.
 Yerelde `.env` dosyası kullanılabilir (bkz. `.env.example`).
 """
 
+import mimetypes
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -131,6 +132,12 @@ WHITENOISE_ROOT = FRONTEND_DIST if FRONTEND_DIST.exists() else None
 WHITENOISE_IMMUTABLE_FILE_TEST = r"^.+[.-][0-9a-zA-Z_-]{8,12}\..+$"
 # Manifest dosyası yoksa (testler, geliştirme) hata vermek yerine özgün adı kullan
 WHITENOISE_MANIFEST_STRICT = False
+
+# Python 3.12'nin yerleşik tablosunda .webp yok ve slim Docker imajında /etc/mime.types
+# bulunmuyor; tür kaydedilmezse görseller application/octet-stream olarak gider ve
+# X-Content-Type-Options: nosniff ile tarayıcı tarafından engellenebilir.
+mimetypes.add_type("image/webp", ".webp")
+mimetypes.add_type("image/avif", ".avif")
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = Path(os.environ.get("MEDIA_ROOT", BASE_DIR / "media"))
