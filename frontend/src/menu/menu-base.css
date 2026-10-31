@@ -55,6 +55,15 @@
   color: var(--m-ink);
 }
 
+/* Önizleme çerçevesinde (iframe) kaydırma çalışır ama çubuk gizlenir */
+html.is-embedded {
+  scrollbar-width: none;
+}
+
+html.is-embedded::-webkit-scrollbar {
+  display: none;
+}
+
 /* Sayfa genişliği: telefonda tam, büyük ekranda ortalanmış dar sütun */
 .m-page {
   width: min(100%, 560px);
@@ -361,7 +370,7 @@
   flex: none;
 }
 
-/* Süzgeç seçenekleri */
+/* Filtre seçenekleri */
 .choice-group {
   display: flex;
   flex-wrap: wrap;

@@ -1,6 +1,6 @@
 /*
  * Vitrin tema (3. şablon): sağ alt köşesi yuvarlatılmış siyah başlık, büyük slogan
- * ve pembe düğme; altta süzgeç + masa satırı, her kategori için yana kayan bej
+ * ve pembe düğme; altta filtre + masa satırı, her kategori için yana kayan bej
  * ürün kartları (görsel kartın üstüne taşar) ve siyah alt bant.
  *
  * Şablondan uyarlananlar: sepet simgesi yerine dil düğmesi, "sepete ekle" yerine
@@ -68,7 +68,7 @@ function Hero() {
   )
 }
 
-/** Şablondaki süzgeç + konum satırı: konum yerine masa, açılır ok garson/hesap panelini açar. */
+/** Şablondaki filtre + konum satırı: konum yerine masa, açılır ok garson/hesap panelini açar. */
 function ToolsRow() {
   const { t, data, openSheet, filterCount, query, setQuery } = useMenu()
   return (

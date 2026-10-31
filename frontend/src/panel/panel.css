@@ -492,13 +492,54 @@
   white-space: nowrap;
 }
 
+.business-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/* Tarayıcının kendi okunu kaldırıp temaya uyan bir ok çiziyoruz */
 .business-switch select {
-  max-width: 180px;
-  padding: 6px 8px;
+  appearance: none;
+  max-width: 190px;
+  min-height: 36px;
+  padding: 6px 32px 6px 12px;
+  overflow: hidden;
   border: 1px solid var(--p-line);
-  border-radius: 8px;
-  background: var(--p-bg);
+  border-radius: 10px;
+  background: var(--p-surface);
+  color: var(--p-ink);
+  font: inherit;
   font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.business-switch select:hover {
+  border-color: var(--p-muted);
+}
+
+.business-switch select:focus-visible {
+  border-color: var(--p-primary);
+  outline: 2px solid var(--p-primary-soft);
+  outline-offset: 1px;
+}
+
+/* Açılan liste de temanın renklerini alsın */
+.business-switch option {
+  background: var(--p-surface);
+  color: var(--p-ink);
+  font-weight: 500;
+}
+
+.business-switch__chevron {
+  position: absolute;
+  right: 10px;
+  color: var(--p-muted);
+  pointer-events: none;
 }
 
 .shell__links {

@@ -1,7 +1,7 @@
 import { searchKey } from './format'
 
 /**
- * Menüyü arama metni, hariç tutulacak alerjenler ve beslenme etiketlerine göre süzer.
+ * Menüyü arama metni, hariç tutulacak alerjenler ve beslenme etiketlerine göre filtreler.
  * Boş kalan kategoriler listeden çıkarılır.
  */
 export function filterMenu(categories, { query = '', excludeAllergens = [], dietary = [] } = {}) {

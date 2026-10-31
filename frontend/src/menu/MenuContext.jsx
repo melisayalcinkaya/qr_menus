@@ -17,7 +17,7 @@ export function useMenu() {
 }
 
 /**
- * Müşteri menüsünün tüm durumu: veri, dil, arama ve süzgeç, açık panel ve masa
+ * Müşteri menüsünün tüm durumu: veri, dil, arama ve filtre, açık panel ve masa
  * çağrısı. Temalar yalnızca bu değerleri çizer; böylece üç tasarım aynı davranışı paylaşır.
  */
 export function MenuProvider({ children }) {
@@ -35,6 +35,13 @@ export function MenuProvider({ children }) {
     return api(`/public/${slug}/?${qs}`, { auth: false })
   }, [slug, tableToken, preview])
   const meta = useAsync(loadMeta, [])
+
+  // Tanıtım sayfasındaki ve paneldeki telefon önizlemesinde kaydırma çubuğu görünmesin
+  useEffect(() => {
+    if (window.self === window.top) return undefined
+    document.documentElement.classList.add('is-embedded')
+    return () => document.documentElement.classList.remove('is-embedded')
+  }, [])
 
   const [lang, setLangState] = useState(initialLang)
   const [query, setQuery] = useState('')

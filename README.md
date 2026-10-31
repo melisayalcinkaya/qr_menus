@@ -8,7 +8,7 @@
 [![Canlı demo](https://img.shields.io/badge/Canl%C4%B1_demo-Render-46E3B7?logo=render&logoColor=white)](https://qr-menus.onrender.com)
 [![Lisans: MIT](https://img.shields.io/badge/Lisans-MIT-yellow.svg)](LICENSE)
 
-Restoran ve kafeler için QR kodlu dijital menü. Müşteri masadaki kodu okutur; menüyü kendi dilinde görür, alerjenlere göre süzer ve tek dokunuşla garson çağırır. İşletme sahibi menüsünü, masalarını, gelen çağrıları ve yorumları tek bir panelden yönetir.
+Restoran ve kafeler için QR kodlu dijital menü. Müşteri masadaki kodu okutur; menüyü kendi dilinde görür, alerjenlere göre filtreler ve tek dokunuşla garson çağırır. İşletme sahibi menüsünü, masalarını, gelen çağrıları ve yorumları tek bir panelden yönetir.
 
 **Canlı demo:** https://qr-menus.onrender.com (ilk açılış, ücretsiz sunucu uyandığı için 30–60 saniye sürebilir)
 
@@ -26,16 +26,16 @@ Basılı menüler güncellenemez, alerjen bilgisi taşımaz ve yabancı misafire
 
 - Menüyü **masaya özel** bir QR koduyla açar; garson çağrısında ya da hesap isteğinde hangi masa olduğu otomatik bilinir.
 - Ürünü panelden pasifleştirmek onu **anında** menüden kaldırır; yeniden basım gerekmez.
-- 14 yasal alerjen grubunu standart kodlarla tutar ve müşterinin menüyü **süzmesini** sağlar.
+- 14 yasal alerjen grubunu standart kodlarla tutar ve müşterinin menüyü **filtrelemesini** sağlar.
 - İşletmeye ziyaret, yoğun saat ve garson yanıt süresi gibi **ölçülebilir** veriler verir.
 
 ## Özellikler
 
 **Müşteri menüsü** (uygulama indirmeden, telefon tarayıcısında)
-- Üç tema, tek davranış: **Klasik** (sarı degrade başlık, iki sütunlu görselli kategori kartları), **Bistro** (yatay kategori kartları, sayfalama, kırmızı alt çubuk), **Vitrin** (siyah başlıkta slogan, yana kayan ürün rafları). Temalar yalnızca görünümü değiştirir; veri, süzgeç ve çağrı mantığı ortaktır
+- Üç tema, tek davranış: **Klasik** (sarı degrade başlık, iki sütunlu görselli kategori kartları), **Bistro** (yatay kategori kartları, sayfalama, kırmızı alt çubuk), **Vitrin** (siyah başlıkta slogan, yana kayan ürün rafları). Temalar yalnızca görünümü değiştirir; veri, filtre ve çağrı mantığı ortaktır
 - Kategoriden ürünlere, üründen ayrıntıya (içindekiler, alerjenler, hazırlık süresi) giden sade gezinme; masa bağlantısı sayfalar arasında korunur
 - Türkçe ve İngilizce; telefonun diline göre açılır, İngilizce alan boşsa Türkçeye düşer
-- Türkçe harflere duyarsız arama ("manti" → Mantı), alerjen ve vegan/vejetaryen/acılı süzgeci
+- Türkçe harflere duyarsız arama ("manti" → Mantı), alerjen ve vegan/vejetaryen/acılı filtresi
 - Masa QR'ıyla açıldığında **garson çağırma** ve **hesap isteme**, isteğin canlı durumu
 - Wi-Fi bilgisi (kopyala düğmesiyle) ve işletme onayından geçen yorumlar
 
@@ -185,7 +185,7 @@ backend/
     catalog.py       alerjenler, beslenme etiketleri, kategori ikonları
     tests/           güvenlik, yetki, akış, dağıtım testleri
 frontend/src/
-  lib/               API istemcisi, oturum, süzgeç, biçimlendirme
+  lib/               API istemcisi, oturum, filtre, biçimlendirme
   menu/              müşteri menüsü ve üç tema
   panel/             işletme paneli
 ```

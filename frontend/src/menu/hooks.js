@@ -9,7 +9,7 @@ export function useOpenProduct() {
   return (product, category) => openSheet('product', { product, category })
 }
 
-/** URL'deki kategoriyi bulur; süzgeçler o kategorideki ürünlere de uygulanır. */
+/** URL'deki kategoriyi bulur; filtreler o kategorideki ürünlere de uygulanır. */
 export function useCurrentCategory() {
   const { categoryId } = useParams()
   const { data, visible } = useMenu()

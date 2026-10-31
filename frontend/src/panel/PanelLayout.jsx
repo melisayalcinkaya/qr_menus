@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom'
 import {
-  BellRing, BookOpen, ExternalLink, LayoutDashboard, LogOut, MessageSquare, QrCode, Settings, Table2,
+  BellRing, BookOpen, ChevronDown, ExternalLink, LayoutDashboard, LogOut, MessageSquare, QrCode, Settings, Table2,
 } from 'lucide-react'
 import { api, apiList } from '../lib/api'
 import { useAuth } from '../lib/auth'
@@ -52,16 +52,7 @@ export default function PanelLayout() {
         <div className="shell__brand">
           <QrCode size={20} aria-hidden="true" />
           {businesses.data?.length > 1 ? (
-            <label className="business-switch">
-              <span className="visually-hidden">İşletme seçin</span>
-              <select value={slug} onChange={(e) => navigate(`/panel/${e.target.value}`)}>
-                {businesses.data.map((b) => (
-                  <option key={b.slug} value={b.slug}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <BusinessSwitch businesses={businesses.data} slug={slug} onChange={(s) => navigate(`/panel/${s}`)} />
           ) : (
             <strong>{business.data?.name || '…'}</strong>
           )}
@@ -101,16 +92,7 @@ export default function PanelLayout() {
       {/* Telefonda kenar menüsü alt sekme çubuğuna dönüşür; işletme, menü ve çıkış burada kalır */}
       <header className="shell__mobilebar">
         {businesses.data?.length > 1 ? (
-          <label className="business-switch">
-            <span className="visually-hidden">İşletme seçin</span>
-            <select value={slug} onChange={(e) => navigate(`/panel/${e.target.value}`)}>
-              {businesses.data.map((b) => (
-                <option key={b.slug} value={b.slug}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <BusinessSwitch businesses={businesses.data} slug={slug} onChange={(s) => navigate(`/panel/${s}`)} />
         ) : (
           <strong>{business.data?.name || '…'}</strong>
         )}
@@ -141,5 +123,22 @@ export default function PanelLayout() {
         </LoadState>
       </main>
     </div>
+  )
+}
+
+/** İşletme seçici. Yerel ok yerine kendi okumuz: koyu temada tarayıcının beyaz ok kutusu çıkmasın. */
+function BusinessSwitch({ businesses, slug, onChange }) {
+  return (
+    <label className="business-switch">
+      <span className="visually-hidden">İşletme seçin</span>
+      <select value={slug} onChange={(e) => onChange(e.target.value)}>
+        {businesses.map((b) => (
+          <option key={b.slug} value={b.slug}>
+            {b.name}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="business-switch__chevron" size={16} aria-hidden="true" />
+    </label>
   )
 }

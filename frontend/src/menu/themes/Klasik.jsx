@@ -166,7 +166,7 @@ export function CategoryPage() {
 }
 
 /*
- * Şablondaki dört ikon: yorumlar, (para simgesi yerine) alerjen süzgeci, Wi-Fi ve
+ * Şablondaki dört ikon: yorumlar, (para simgesi yerine) alerjen filtresi, Wi-Fi ve
  * garson/hesap. Garson çağırma ile hesap isteme aynı panelden seçildiği için tek düğme.
  */
 function Dock() {

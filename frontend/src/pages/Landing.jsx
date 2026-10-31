@@ -33,7 +33,7 @@ const DEMOS = [
 const FEATURES = [
   { icon: QrCode, title: 'Masaya özel QR', text: 'Her masanın kodu menüyü o masa için açar; kartları tek PDF olarak yazdırırsınız.' },
   { icon: BellRing, title: 'Garson çağırma ve hesap', text: 'Müşteri tek dokunuşla garson çağırır ya da hesap ister; panelde sesli uyarıyla anında görünür.' },
-  { icon: SlidersHorizontal, title: 'Alerjen süzgeci', text: '14 yasal alerjen grubu ve vegan/vejetaryen etiketleriyle menüyü süzme.' },
+  { icon: SlidersHorizontal, title: 'Alerjen filtresi', text: '14 yasal alerjen grubu ve vegan/vejetaryen etiketleriyle menüyü filtreleme.' },
   { icon: Languages, title: 'Türkçe ve İngilizce', text: 'Menü telefonun diline göre açılır, tek dokunuşla değişir.' },
   { icon: BookOpen, title: 'Kolay menü yönetimi', text: 'Ürünü pasifleştirince menüden anında kalkar; sıralama ve görseller panelden.' },
   { icon: ChartColumn, title: 'İstatistikler', text: 'Menü ziyaretleri, yoğun saatler, garsonun ortalama yanıt süresi ve puanlar.' },
