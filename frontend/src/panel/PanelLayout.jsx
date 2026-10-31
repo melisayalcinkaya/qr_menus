@@ -10,10 +10,10 @@ import { LoadState } from './ui'
 import { playChime, useLiveCalls } from './useLiveCalls'
 
 const NAV = [
-  { to: '', label: 'Genel bakış', icon: LayoutDashboard, end: true },
-  { to: 'cagrilar', label: 'Garson çağrıları', icon: BellRing, badge: 'calls' },
+  { to: '', label: 'Genel bakış', short: 'Özet', icon: LayoutDashboard, end: true },
+  { to: 'cagrilar', label: 'Garson çağrıları', short: 'Çağrılar', icon: BellRing, badge: 'calls' },
   { to: 'menu', label: 'Menü', icon: BookOpen },
-  { to: 'masalar', label: 'Masalar ve QR', icon: Table2 },
+  { to: 'masalar', label: 'Masalar ve QR', short: 'Masalar', icon: Table2 },
   { to: 'yorumlar', label: 'Yorumlar', icon: MessageSquare, badge: 'comments' },
   { to: 'ayarlar', label: 'Ayarlar', icon: Settings },
 ]
@@ -59,11 +59,17 @@ export default function PanelLayout() {
         </div>
         <nav>
           <ul className="shell__links">
-            {NAV.map(({ to, label, icon: Icon, end, badge }) => (
+            {NAV.map(({ to, label, short, icon: Icon, end, badge }) => (
               <li key={to}>
                 <NavLink to={to} end={end} className="shell__link">
                   <Icon size={19} aria-hidden="true" />
-                  <span className="shell__label">{label}</span>
+                  <span className={short ? 'shell__label shell__label--long' : 'shell__label'}>{label}</span>
+                  {/* Telefondaki alt çubukta altı sekme sığsın diye kısa ad; ekran okuyucu uzun adı okur */}
+                  {short && (
+                    <span className="shell__label shell__label--short" aria-hidden="true">
+                      {short}
+                    </span>
+                  )}
                   {badge && badges[badge] > 0 && (
                     <span className={`count count--${badge}`}>
                       {badges[badge]}

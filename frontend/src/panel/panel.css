@@ -1002,6 +1002,7 @@
 
 .menu-editor {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
 }
 
@@ -1029,7 +1030,10 @@
 }
 
 .cat-block__add {
+  max-width: calc(100% - 20px);
   margin: 8px 10px 10px;
+  white-space: normal;
+  text-align: left;
 }
 
 .row-actions {
@@ -1393,5 +1397,56 @@
   .inline-form .field--short {
     flex: 1 1 110px;
     max-width: none;
+  }
+}
+
+/* Kısa sekme adları yalnızca telefondaki alt çubukta görünür */
+.shell__label--short {
+  display: none;
+}
+
+@media (max-width: 899px) {
+  .shell__links {
+    grid-auto-columns: minmax(0, 1fr);
+  }
+
+  .shell__links li {
+    min-width: 0;
+  }
+
+  .shell__label--short {
+    display: block;
+  }
+
+  /* Uzun ad görünmez ama ekran okuyucu için yerinde kalır */
+  .shell__label--long {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  /* Kategori başlığı dar ekranda iki satıra bölünür, düğmeler alta iner */
+  .cat-block__head {
+    flex-wrap: wrap;
+  }
+
+  /* Ad tek satıra sığmazsa kelimeden bölünmez; düğmeler alt satıra iner */
+  .cat-block__head h2 {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .cat-block__head .row-actions {
+    margin-left: auto;
+  }
+}
+
+/* Çok dar telefonlarda (≈320 px) QR kartları tek sütun */
+@media (max-width: 380px) {
+  .qr-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
