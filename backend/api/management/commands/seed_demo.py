@@ -7,13 +7,49 @@ Tüm veriler kurgusaldır.
 import random
 from datetime import timedelta
 from decimal import Decimal
+from pathlib import Path
 
 from django.contrib.auth import get_user_model
+from django.core.files import File
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
-from api.models import Business, Category, Comment, MenuVisit, Product, Table, WaiterCall
+from api.models import (
+    Business,
+    Category,
+    Comment,
+    MenuVisit,
+    Product,
+    Table,
+    WaiterCall,
+    turkish_slugify,
+)
+
+# Yapay zekâ ile üretilmiş kurgusal yemek görselleri: demo_images/<tema>/<ürün-slug>.webp
+DEMO_IMAGES = Path(__file__).resolve().parents[2] / "demo_images"
+
+# Vitrin temasının büyük başlığında görünen metinler (diğer temalarda isteğe bağlı)
+TAGLINES = {
+    "klasik": (
+        "Ev usulü, günlük taze",
+        "Home-style, cooked fresh daily",
+        "Kırk yıllık tariflerle her gün yeniden pişen sulu yemekler.",
+        "Slow-cooked Turkish classics, made fresh every morning.",
+    ),
+    "bistro": (
+        "Rıhtımda akşam yemeği",
+        "Dinner by the harbour",
+        "Izgarada günün balığı, paylaşmalık mezeler ve fıçı bira.",
+        "Catch of the day from the grill, sharing plates and draught beer.",
+    ),
+    "vitrin": (
+        "Taze baklava, kaymaklı katmer!",
+        "Fresh baklava, creamy katmer!",
+        "Her sabah fırından çıkan baklava ve poğaçalar, bol Antep fıstığıyla.",
+        "Baklava and pastries straight from the oven every morning, with plenty of pistachio.",
+    ),
+}
 
 DEMO_USERNAME = "demo"
 DEMO_PASSWORD = "demo-sifre-2026"  # noqa: S105 - herkese açık demo hesabı
@@ -530,6 +566,13 @@ class Command(BaseCommand):
             user.set_password(DEMO_PASSWORD)
             user.save()
         if reset:
+            # Kayıtlarla birlikte yüklenmiş görsel dosyalarını da sil (yeniden kurulumda birikmesin)
+            for business in user.businesses.all():
+                files = [business.logo] + [c.image for c in business.categories.all()]
+                files += [p.image for c in business.categories.all() for p in c.products.all()]
+                for f in files:
+                    if f:
+                        f.delete(save=False)
             user.businesses.all().delete()
         if user.businesses.exists():
             self.stdout.write("Demo verisi zaten var (yeniden kurmak için --reset).")
@@ -543,14 +586,19 @@ class Command(BaseCommand):
                 wifi_ssid=menu["wifi"][0],
                 wifi_password=menu["wifi"][1],
                 wifi_enabled=True,
+                tagline=TAGLINES[theme][0],
+                tagline_en=TAGLINES[theme][1],
+                about=TAGLINES[theme][2],
+                about_en=TAGLINES[theme][3],
             )
             for pos, (name, name_en, icon, products) in enumerate(menu["categories"]):
                 category = Category.objects.create(
                     business=business, name=name, name_en=name_en, icon=icon, position=pos
                 )
+                cover = None
                 for ppos, row in enumerate(products):
                     pname, pname_en, desc, desc_en, price, allergens, diet, popular, prep = row
-                    Product.objects.create(
+                    product = Product.objects.create(
                         category=category,
                         name=pname,
                         name_en=pname_en,
@@ -563,6 +611,16 @@ class Command(BaseCommand):
                         preparation_time=prep,
                         position=ppos,
                     )
+                    image = DEMO_IMAGES / theme / f"{turkish_slugify(pname)}.webp"
+                    if image.exists():
+                        with image.open("rb") as fh:
+                            product.image.save(image.name, File(fh), save=True)
+                        # Kategori kapağı: kategorinin ilk "sevilen" ürünü, yoksa ilk ürünü
+                        if cover is None or (popular and not cover[1]):
+                            cover = (image, popular)
+                if cover:
+                    with cover[0].open("rb") as fh:
+                        category.image.save(cover[0].name, File(fh), save=True)
             tables = [
                 Table.objects.create(business=business, label=label, position=i)
                 for i, label in enumerate(["1", "2", "3", "4", "5", "6", "Bahçe 1", "Bahçe 2"])
